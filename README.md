@@ -14,6 +14,12 @@ A self-hosted game portal for indie developers. Think personal itch.io, no accou
 - **Your branding**: Site name, title, tagline, navigation, all configurable. Tickle is the engine; your site is the product
 - **Zero dependencies**: Python stdlib server for admin, no NPM, no frameworks, no build tools, no databases, just a server
 
+Demo Video:
+
+[![Watch it in action](https://img.youtube.com/vi/WWZRa3ev110/0.jpg)](https://www.youtube.com/watch?v=WWZRa3ev110)
+
+You can see it here: https://games.jeocities.org
+
 ## Quick Start
 
 ```bash
@@ -168,11 +174,11 @@ This project was created with the help of Claude Code and Open Code with locally
 
 AI did not come up with this app idea, it has been entirely tailored to my use cases for a locally hosted itch.io clone. The themes, look, design and functionality are all things I spent writing out a design for, writing prototypes, testing the flow and then working with the AI tools to flesh them out.
 
+I am a recent father of an almost two month old, I have been coding and devloping games and apps for well over a decade now and I just wanted to make something cool with the extremely limited time I have.
+
 I spent more hours than a newborn really should allow hours testing it on my own devices, over and over, refining the development process, reviewing every line, coming up with a QA process and working with the tools to fix them.
 
 This is not "make me an itch.io clone", this is something I thought should exist and utilized AI as a tool to help bring it to fruition, both as a method to accelerate development and for my own learning and curiosity about how these tools could be used going forward.
-
-I am a recent father of an almost two month old, I have been coding and devloping games and apps for well over a decade now and I just wanted to make something cool with the extremely limited time I have.
 
 The use of AI may mean you will just ignore this tool, and that's fine, but if not, I hope you enjoy it, and if you are so inclined, help to improve it.
 
