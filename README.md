@@ -176,7 +176,7 @@ AI did not come up with this app idea, it has been entirely tailored to my use c
 
 I am a recent father of an almost two month old, I have been coding and devloping games and apps for well over a decade now and I just wanted to make something cool with the extremely limited time I have.
 
-I spent more hours than a newborn really should allow hours testing it on my own devices, over and over, refining the development process, reviewing every line, coming up with a QA process and working with the tools to fix them.
+I spent more hours than a newborn really should allow, hours testing it on my own devices, over and over, refining the development process, reviewing every line, coming up with a QA process and working with the tools to fix them.
 
 This is not "make me an itch.io clone", this is something I thought should exist and utilized AI as a tool to help bring it to fruition, both as a method to accelerate development and for my own learning and curiosity about how these tools could be used going forward.
 
