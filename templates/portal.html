@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{site.site_title}}</title>
+<meta property="og:title" content="{{site.site_title}}">
+<meta property="og:description" content="{{site.site_tagline}}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{site.site_url}}">
+<meta property="og:site_name" content="{{site.site_name}}">
+<!--IF:og_portal_image--><meta property="og:image" content="{{og_portal_image}}"><!--ENDIF:og_portal_image-->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{site.site_title}}">
+<meta name="twitter:description" content="{{site.site_tagline}}">
+<!--IF:og_portal_image--><meta name="twitter:image" content="{{og_portal_image}}"><!--ENDIF:og_portal_image-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+{{theme_css}}
+<!--IF:rss_url--><link rel="alternate" type="application/rss+xml" title="{{site.site_title}}" href="{{rss_url}}"><!--ENDIF:rss_url-->
+</head>
+<body>
+
+{{bg_pattern_html}}
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-left">
+    <a href="./index.html" class="site-logo">
+      {{site_logo_html}}
+    </a>
+    <ul class="topbar-nav">
+      <!--LOOP:site.nav_links-->
+      <li><a href="<!--LOOP_ITEM:url-->" class="<!--LOOP_ITEM:active_class-->"><!--LOOP_ITEM:label--></a></li>
+      <!--ENDLOOP:site.nav_links-->
+    </ul>
+  </div>
+  <input type="text" class="topbar-search" placeholder="Search games..." id="searchInput" oninput="filterGames()">
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <!--IF:site.site_badge--><div class="hero-badge">{{site.site_badge}}</div><!--ENDIF:site.site_badge-->
+  <h1>{{site.site_title_html}}</h1>
+  <p>{{site.site_tagline}}</p>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <!--IF:show_filters-->
+  <div class="filter-tabs" id="filterTabs">
+    {{filter_tabs_html}}
+  </div>
+  <!--ENDIF:show_filters-->
+  <div class="filter-count"><span id="visibleCount">0</span> entries</div>
+</div>
+
+<!-- GRID -->
+<!--IF:show_browse_panel-->
+<div class="portal-browse-layout">
+  <aside class="portal-sidebar">
+    <div class="browse-section">
+      <h3>Tags</h3>
+      <div class="browse-grid">
+        {{tags_browse_html}}
+      </div>
+    </div>
+    <div class="browse-section">
+      <h3>Genres</h3>
+      <div class="browse-grid">
+        {{genres_browse_html}}
+      </div>
+    </div>
+    <!--IF:social_icons_html-->
+    <div class="browse-section">
+      <h3>{{social_heading}}</h3>
+      <div class="social-icons-grid">
+        {{social_icons_html}}
+      </div>
+    </div>
+    <!--ENDIF:social_icons_html-->
+  </aside>
+<!--ENDIF:show_browse_panel-->
+
+<div class="games-grid" id="gamesGrid">
+  {{game_cards}}
+</div>
+
+<!--IF:show_browse_panel-->
+</div>
+<!--ENDIF:show_browse_panel-->
+
+<!-- SUPPORT BAR -->
+<!--IF:support_links-->
+<div class="support-bar">
+  <div class="support-bar-inner">
+    <span class="support-bar-label">Support the Creator</span>
+    <div class="support-links">
+      <!--LOOP:support_links-->
+      <a href="<!--LOOP_ITEM:url-->" class="support-link" target="_blank" rel="noopener">
+        <span class="support-provider"><!--LOOP_ITEM:provider--></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+      <!--ENDLOOP:support_links-->
+    </div>
+    <!--IF:social_icons_inline-->
+    <div class="social-icons-inline">
+      {{social_icons_html}}
+    </div>
+    <!--ENDIF:social_icons_inline-->
+  </div>
+</div>
+<!--ENDIF:support_links-->
+
+<!--IF:social_icons_standalone-->
+<div class="support-bar">
+  <div class="support-bar-inner">
+    <span class="support-bar-label">{{social_heading}}</span>
+    <div class="social-icons-inline">
+      {{social_icons_html}}
+    </div>
+  </div>
+</div>
+<!--ENDIF:social_icons_standalone-->
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <span>{{site.footer_text}}</span>
+  <span class="powered-by">powered by <a href="https://github.com/shaneobi/tickle">tickle</a></span>
+  <div class="footer-links">
+    <!--LOOP:site.footer_links-->
+    <a href="<!--LOOP_ITEM:url-->"><!--LOOP_ITEM:label--></a>
+    <!--ENDLOOP:site.footer_links-->
+    <!--IF:rss_url--><a href="{{rss_url}}" class="rss-link" target="_blank" rel="noopener">RSS</a><!--ENDIF:rss_url-->
+  </div>
+</footer>
+
+<script>
+let currentFilter = 'all';
+let currentTag = '';
+let currentGenre = '';
+
+function setFilter(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  filterGames();
+}
+
+function setBrowseTag(tag, el) {
+  if (currentTag === tag) {
+    currentTag = '';
+    el.classList.remove('active');
+  } else {
+    currentTag = tag;
+    document.querySelectorAll('.browse-tag').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  currentGenre = '';
+  document.querySelectorAll('.browse-genre').forEach(t => t.classList.remove('active'));
+  updateURL();
+  filterGames();
+}
+
+function setBrowseGenre(genre, el) {
+  if (currentGenre === genre) {
+    currentGenre = '';
+    el.classList.remove('active');
+  } else {
+    currentGenre = genre;
+    document.querySelectorAll('.browse-genre').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  currentTag = '';
+  document.querySelectorAll('.browse-tag').forEach(t => t.classList.remove('active'));
+  updateURL();
+  filterGames();
+}
+
+function updateURL() {
+  const url = new URL(window.location);
+  url.searchParams.delete('tag');
+  url.searchParams.delete('genre');
+  if (currentTag) url.searchParams.set('tag', currentTag);
+  if (currentGenre) url.searchParams.set('genre', currentGenre);
+  history.replaceState(null, '', url);
+}
+
+function filterGames() {
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.game-card');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const matchType = currentFilter === 'all' || card.dataset.type === currentFilter;
+    const matchSearch = !query
+      || card.dataset.title.includes(query)
+      || card.dataset.tags.includes(query)
+      || (card.querySelector('.card-desc')?.textContent || '').toLowerCase().includes(query);
+    const matchTag = !currentTag || card.dataset.tags.split(',').includes(currentTag);
+    const matchGenre = !currentGenre || card.dataset.genre.split(', ').includes(currentGenre);
+
+    if (matchType && matchSearch && matchTag && matchGenre) {
+      card.classList.remove('hidden');
+      visible++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('visibleCount').textContent = visible;
+}
+
+// Initial setup: read URL params and bind browse click handlers
+document.addEventListener('DOMContentLoaded', function() {
+  const params = new URLSearchParams(window.location.search);
+  const urlTag = params.get('tag');
+  const urlGenre = params.get('genre');
+
+  // Bind click handlers on browse items
+  document.querySelectorAll('.browse-tag').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.preventDefault();
+      setBrowseTag(this.dataset.tag, this);
+    });
+  });
+  document.querySelectorAll('.browse-genre').forEach(el => {
+    el.addEventListener('click', function(e) {
+      e.preventDefault();
+      setBrowseGenre(this.dataset.genre, this);
+    });
+  });
+
+  // Apply URL params
+  if (urlTag) {
+    currentTag = urlTag;
+    document.querySelectorAll('.browse-tag').forEach(el => {
+      if (el.dataset.tag === urlTag) el.classList.add('active');
+    });
+    filterGames();
+  } else if (urlGenre) {
+    currentGenre = urlGenre;
+    document.querySelectorAll('.browse-genre').forEach(el => {
+      if (el.dataset.genre === urlGenre) el.classList.add('active');
+    });
+    filterGames();
+  } else {
+    document.getElementById('visibleCount').textContent =
+      document.querySelectorAll('.game-card').length;
+  }
+});
+</script>
+
+</body>
+</html>

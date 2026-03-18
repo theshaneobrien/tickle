@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{title}} — {{site.site_title}}</title>
+<!--IF:icon--><link rel="icon" href="{{icon}}" type="image/png"><!--ENDIF:icon-->
+<meta property="og:title" content="{{title}} — {{site.site_title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{site.site_url}}/games/{{slug}}/">
+<meta property="og:site_name" content="{{site.site_name}}">
+<!--IF:cover--><meta property="og:image" content="{{site.site_url}}/games/{{slug}}/{{cover}}"><!--ENDIF:cover-->
+<!--IF:og_image_fallback--><meta property="og:image" content="{{og_image_fallback}}"><!--ENDIF:og_image_fallback-->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{title}} — {{site.site_title}}">
+<meta name="twitter:description" content="{{description}}">
+<!--IF:cover--><meta name="twitter:image" content="{{site.site_url}}/games/{{slug}}/{{cover}}"><!--ENDIF:cover-->
+<!--IF:og_image_fallback--><meta name="twitter:image" content="{{og_image_fallback}}"><!--ENDIF:og_image_fallback-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared.css">
+{{theme_css}}
+</head>
+<body>
+
+{{bg_pattern_html}}
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-left">
+    <a href="../../index.html" class="site-logo">
+      {{site_logo_html}}
+    </a>
+    <ul class="topbar-nav">
+      <!--LOOP:site.nav_links-->
+      <li><a href="<!--LOOP_ITEM:url-->"><!--LOOP_ITEM:label--></a></li>
+      <!--ENDLOOP:site.nav_links-->
+    </ul>
+  </div>
+</nav>
+
+<!-- GAME HEADER BAR -->
+<div class="game-header">
+  <div class="game-header-inner">
+    <div class="game-title-section">
+      <!--IF:icon--><img src="{{icon}}" alt="{{title}}" class="game-title-icon"><!--ENDIF:icon-->
+      <div class="game-title-text">
+        <h1>{{title}}</h1>
+        <div class="byline">by <a href="../../index.html">{{author}}</a></div>
+      </div>
+    </div>
+    <div class="game-nav">
+      <a class="game-nav-item active">Game</a>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE LAYOUT -->
+<div class="page-layout">
+
+  <!-- MAIN COLUMN -->
+  <div class="main-column">
+
+    <!--IF:is_emulator-->
+    <!-- EmulatorJS Viewport -->
+    <div class="game-viewport" id="gameViewport">
+      <div class="game-splash" id="gameSplash" onclick="launchEmulator()">
+        <div class="splash-content">
+          <!--IF:cover--><img src="{{cover}}" alt="{{title}}" class="splash-logo"><!--ENDIF:cover-->
+          <div class="splash-title">{{title}}</div>
+          <!--IF:description--><div class="splash-sub">{{description}}</div><!--ENDIF:description-->
+          <button class="play-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Run Game
+          </button>
+        </div>
+      </div>
+      <div id="emulatorContainer" style="display:none;">
+        <div id="game"></div>
+      </div>
+    </div>
+    <div class="game-toolbar">
+      <div class="toolbar-left">
+        <button class="toolbar-btn" onclick="toggleFullscreen()" title="Fullscreen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          Fullscreen
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <span class="toolbar-meta">
+          <span class="engine-dot"></span>
+          {{emulator_system}}<!--IF:engine--> · {{engine}}<!--ENDIF:engine-->
+        </span>
+      </div>
+    </div>
+    <!--ENDIF:is_emulator-->
+
+    <!--IF:is_iframe_game-->
+    <!-- Game Viewport -->
+    <div class="game-viewport" id="gameViewport">
+      <div class="game-splash" id="gameSplash" onclick="launchGame()">
+        <div class="splash-content">
+          <!--IF:cover--><img src="{{cover}}" alt="{{title}}" class="splash-logo"><!--ENDIF:cover-->
+          <div class="splash-title">{{title}}</div>
+          <!--IF:description--><div class="splash-sub">{{description}}</div><!--ENDIF:description-->
+          <button class="play-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Run Game
+          </button>
+        </div>
+      </div>
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">loading...</div>
+        <div class="progress-bar-wrap"><div class="progress-bar"></div></div>
+      </div>
+      <iframe id="gameFrame" allow="autoplay; fullscreen; focus-without-user-activation *;" allowfullscreen></iframe>
+    </div>
+
+    <div class="game-toolbar">
+      <div class="toolbar-left">
+        <button class="toolbar-btn" onclick="toggleFullscreen()" title="Fullscreen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          Fullscreen
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <span class="toolbar-meta">
+          <span class="engine-dot"></span>
+          {{engine}}<!--IF:engine_version--> · {{engine_version}}<!--ENDIF:engine_version-->
+        </span>
+      </div>
+    </div>
+    <!--ENDIF:is_iframe_game-->
+
+    <!--IF:youtube_hero-->
+    <div class="game-viewport cover-hero">
+      <iframe src="{{youtube_hero}}" style="width:100%;height:100%;border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+    <!--ENDIF:youtube_hero-->
+
+    <!--IF:cover_hero-->
+    <div class="game-viewport cover-hero">
+      <img src="{{cover}}" alt="{{title}}" class="cover-hero-img">
+    </div>
+    <!--ENDIF:cover_hero-->
+
+    <!--IF:placeholder_hero-->
+    <div class="game-viewport cover-hero placeholder-hero">
+      <div class="placeholder-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>{{title}}</span>
+      </div>
+    </div>
+    <!--ENDIF:placeholder_hero-->
+
+    <!--IF:youtube_trailer-->
+    <div class="content-area">
+      <div class="content-section">
+        <h2>Trailer</h2>
+        <div class="trailer-embed">
+          <iframe src="{{youtube_trailer}}" style="width:100%;height:100%;border:none;position:absolute;top:0;left:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+    <!--ENDIF:youtube_trailer-->
+
+    <!-- Description -->
+    <div class="content-area">
+      <!--IF:long_description-->
+      <div class="content-section">
+        <h2>About This Game</h2>
+        {{long_description}}
+      </div>
+      <!--ENDIF:long_description-->
+
+      <!--IF:controls-->
+      <div class="content-section">
+        <h2>Controls</h2>
+        <table class="controls-table">
+          <!--LOOP:controls-->
+          <tr>
+            <td><!--LOOP_ITEM:key--></td>
+            <td><!--LOOP_ITEM:action--></td>
+          </tr>
+          <!--ENDLOOP:controls-->
+        </table>
+      </div>
+      <!--ENDIF:controls-->
+
+      <!--IF:credits-->
+      <div class="content-section">
+        <h2>Credits</h2>
+        <table class="controls-table">
+          {{credits_html}}
+        </table>
+      </div>
+      <!--ENDIF:credits-->
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!--IF:downloads-->
+    <div class="sidebar-section">
+      <h3>Downloads</h3>
+      <div class="downloads-list">
+        <!--LOOP:downloads-->
+        <a href="<!--LOOP_ITEM:href-->" class="download-item" <!--LOOP_ITEM:attrs-->>
+          <span class="download-platform"><!--LOOP_ITEM:platform--></span>
+          <span class="download-size"><!--LOOP_ITEM:size--></span>
+        </a>
+        <!--ENDLOOP:downloads-->
+      </div>
+    </div>
+    <!--ENDIF:downloads-->
+
+    <div class="sidebar-section">
+      <h3>Game Info</h3>
+      <div class="info-grid">
+        <span class="info-label">Status</span>
+        <span class="info-value"><span class="status-pill {{status}}">{{status_label}}</span></span>
+        <!--IF:platform-->
+        <span class="info-label">Platform</span>
+        <span class="info-value">{{platform}}</span>
+        <!--ENDIF:platform-->
+        <span class="info-label">Author</span>
+        <span class="info-value"><a href="../../index.html">{{author}}</a></span>
+        <!--IF:engine-->
+        <span class="info-label">Engine</span>
+        <span class="info-value">{{engine}}</span>
+        <!--ENDIF:engine-->
+        <!--IF:genre-->
+        <span class="info-label">Genre</span>
+        <span class="info-value">{{genre}}</span>
+        <!--ENDIF:genre-->
+        <!--IF:made_with-->
+        <span class="info-label">Made with</span>
+        <span class="info-value">{{made_with}}</span>
+        <!--ENDIF:made_with-->
+        <!--IF:input_methods-->
+        <span class="info-label">Input</span>
+        <span class="info-value">{{input_methods}}</span>
+        <!--ENDIF:input_methods-->
+        <!--IF:version-->
+        <span class="info-label">Version</span>
+        <span class="info-value">{{version}}</span>
+        <!--ENDIF:version-->
+        <!--IF:date_created-->
+        <span class="info-label">Published</span>
+        <span class="info-value">{{date_created_display}}</span>
+        <!--ENDIF:date_created-->
+        <!--IF:date_updated_display-->
+        <span class="info-label">Updated</span>
+        <span class="info-value">{{date_updated_display}}</span>
+        <!--ENDIF:date_updated_display-->
+      </div>
+    </div>
+
+    <!--IF:tags-->
+    <div class="sidebar-section">
+      <h3>Tags</h3>
+      <div class="tag-list">
+        {{tags_html}}
+      </div>
+    </div>
+    <!--ENDIF:tags-->
+
+    <!--IF:links-->
+    <div class="sidebar-section">
+      <h3>Links</h3>
+      <div class="sidebar-links">
+        <!--LOOP:links-->
+        <a href="<!--LOOP_ITEM:url-->" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <!--LOOP_ITEM:label-->
+        </a>
+        <!--ENDLOOP:links-->
+      </div>
+    </div>
+    <!--ENDIF:links-->
+
+    <!--IF:screenshots-->
+    <div class="sidebar-section">
+      <h3>Screenshots</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        {{screenshots_html}}
+      </div>
+    </div>
+    <!--ENDIF:screenshots-->
+
+  </aside>
+</div>
+
+<!--IF:screenshots-->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <button class="lightbox-nav lightbox-prev" onclick="event.stopPropagation();navLightbox(-1)">&lsaquo;</button>
+  <img id="lightboxImg" src="" alt="Screenshot">
+  <button class="lightbox-nav lightbox-next" onclick="event.stopPropagation();navLightbox(1)">&rsaquo;</button>
+</div>
+<!--ENDIF:screenshots-->
+
+<!-- SUPPORT BAR -->
+<!--IF:support_links-->
+<div class="support-bar">
+  <div class="support-bar-inner">
+    <span class="support-bar-label">Support the Creator</span>
+    <div class="support-links">
+      <!--LOOP:support_links-->
+      <a href="<!--LOOP_ITEM:url-->" class="support-link" target="_blank" rel="noopener">
+        <span class="support-provider"><!--LOOP_ITEM:provider--></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+      <!--ENDLOOP:support_links-->
+    </div>
+  </div>
+</div>
+<!--ENDIF:support_links-->
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <span>{{site.footer_text}}</span>
+  <span class="powered-by">powered by <a href="https://github.com/shaneobi/tickle">tickle</a></span>
+  <div class="footer-links">
+    <a href="../../index.html">All Games</a>
+    <!--LOOP:site.footer_links-->
+    <a href="<!--LOOP_ITEM:url-->"><!--LOOP_ITEM:label--></a>
+    <!--ENDLOOP:site.footer_links-->
+  </div>
+</footer>
+
+<!--IF:screenshots-->
+<script>
+  var screenshotSrcs = [{{screenshots_js}}];
+  var currentSsIndex = 0;
+
+  function openLightbox(index) {
+    currentSsIndex = index;
+    var lb = document.getElementById('lightbox');
+    document.getElementById('lightboxImg').src = screenshotSrcs[index];
+    lb.classList.add('active');
+  }
+
+  function closeLightbox(e) {
+    if (e && e.target && e.target.tagName === 'IMG') return;
+    document.getElementById('lightbox').classList.remove('active');
+  }
+
+  function navLightbox(dir) {
+    currentSsIndex = (currentSsIndex + dir + screenshotSrcs.length) % screenshotSrcs.length;
+    document.getElementById('lightboxImg').src = screenshotSrcs[currentSsIndex];
+  }
+
+  document.addEventListener('keydown', function(e) {
+    var lb = document.getElementById('lightbox');
+    if (!lb || !lb.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') navLightbox(-1);
+    if (e.key === 'ArrowRight') navLightbox(1);
+  });
+</script>
+<!--ENDIF:screenshots-->
+
+<script>
+(function(){try{var h=location.hostname;if(h&&h!=='localhost'&&h!=='127.0.0.1'){var x=new XMLHttpRequest();x.open('GET',location.origin+'/api/hit/{{slug}}');x.send();}}catch(e){}})();
+</script>
+
+<!--IF:is_emulator-->
+<script>
+  function launchEmulator() {
+    document.getElementById('gameSplash').style.display = 'none';
+    document.getElementById('emulatorContainer').style.display = 'block';
+    window.EJS_player = '#game';
+    window.EJS_core = '{{emulator_core}}';
+    window.EJS_gameUrl = '{{game_file}}';
+    window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+    window.EJS_color = '#ff6b6b';
+    var s = document.createElement('script');
+    s.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+    document.body.appendChild(s);
+  }
+
+  function toggleFullscreen() {
+    var viewport = document.getElementById('gameViewport');
+    if (!document.fullscreenElement) {
+      viewport.requestFullscreen().catch(function() {
+        viewport.classList.toggle('fullscreen');
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('gameViewport').classList.remove('fullscreen');
+    }
+  });
+</script>
+<!--ENDIF:is_emulator-->
+
+<!--IF:is_iframe_game-->
+<script>
+  var gameFile = '{{game_file}}';
+
+  function launchGame() {
+    var viewport = document.getElementById('gameViewport');
+    var splash = document.getElementById('gameSplash');
+    var loading = document.getElementById('loadingOverlay');
+    var frame = document.getElementById('gameFrame');
+
+    splash.style.display = 'none';
+    loading.classList.add('active');
+
+    frame.src = gameFile;
+
+    frame.onload = function() {
+      setTimeout(function() {
+        loading.classList.remove('active');
+        viewport.classList.add('playing');
+        frame.focus();
+      }, 500);
+    };
+
+    setTimeout(function() {
+      if (loading.classList.contains('active')) {
+        loading.classList.remove('active');
+        viewport.classList.add('playing');
+        frame.focus();
+      }
+    }, 15000);
+  }
+
+  function toggleFullscreen() {
+    var viewport = document.getElementById('gameViewport');
+    if (!document.fullscreenElement) {
+      viewport.requestFullscreen().catch(function() {
+        viewport.classList.toggle('fullscreen');
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('gameViewport').classList.remove('fullscreen');
+    }
+  });
+</script>
+<!--ENDIF:is_iframe_game-->
+
+</body>
+</html>

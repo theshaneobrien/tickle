@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{title}} — {{site.site_title}}</title>
+<!--IF:icon--><link rel="icon" href="{{icon}}" type="image/png"><!--ENDIF:icon-->
+<meta property="og:title" content="{{title}} — {{site.site_title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{site.site_url}}/games/{{slug}}/">
+<meta property="og:site_name" content="{{site.site_name}}">
+<!--IF:cover--><meta property="og:image" content="{{site.site_url}}/games/{{slug}}/{{cover}}"><!--ENDIF:cover-->
+<!--IF:og_image_fallback--><meta property="og:image" content="{{og_image_fallback}}"><!--ENDIF:og_image_fallback-->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{title}} — {{site.site_title}}">
+<meta name="twitter:description" content="{{description}}">
+<!--IF:cover--><meta name="twitter:image" content="{{site.site_url}}/games/{{slug}}/{{cover}}"><!--ENDIF:cover-->
+<!--IF:og_image_fallback--><meta name="twitter:image" content="{{og_image_fallback}}"><!--ENDIF:og_image_fallback-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared.css">
+{{theme_css}}
+</head>
+<body>
+
+{{bg_pattern_html}}
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-left">
+    <a href="../../index.html" class="site-logo">
+      {{site_logo_html}}
+    </a>
+    <ul class="topbar-nav">
+      <!--LOOP:site.nav_links-->
+      <li><a href="<!--LOOP_ITEM:url-->"><!--LOOP_ITEM:label--></a></li>
+      <!--ENDLOOP:site.nav_links-->
+    </ul>
+  </div>
+</nav>
+
+<!-- HEADER BAR -->
+<div class="game-header">
+  <div class="game-header-inner">
+    <div class="game-title-section">
+      <!--IF:icon--><img src="{{icon}}" alt="{{title}}" class="game-title-icon"><!--ENDIF:icon-->
+      <div class="game-title-text">
+        <h1>{{title}}</h1>
+        <div class="byline">by <a href="../../index.html">{{author}}</a></div>
+      </div>
+    </div>
+    <div class="game-nav">
+      <a class="game-nav-item active">3D Print</a>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE LAYOUT -->
+<div class="page-layout">
+
+  <!-- MAIN COLUMN -->
+  <div class="main-column">
+
+    <!--IF:viewer_file-->
+    <!-- 3D Model Viewer -->
+    <div class="game-viewport" id="modelViewport">
+      <canvas id="modelCanvas"></canvas>
+      <div class="loading-overlay" id="modelLoading">
+        <div class="spinner"></div>
+        <div class="loading-text">loading model...</div>
+        <div class="progress-bar-wrap"><div class="progress-bar"></div></div>
+      </div>
+    </div>
+
+    <div class="game-toolbar">
+      <div class="toolbar-left">
+        <button class="toolbar-btn" onclick="resetCamera()" title="Reset View">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Reset View
+        </button>
+        <button class="toolbar-btn" onclick="toggleFullscreen()" title="Fullscreen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          Fullscreen
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <span class="toolbar-meta" id="modelLabel">
+          <span class="engine-dot"></span>
+          3D Model
+        </span>
+      </div>
+    </div>
+
+    <!-- Model thumbnail strip -->
+    <div class="model-thumbstrip" id="modelThumbstrip"></div>
+    <!--ENDIF:viewer_file-->
+
+    <!--IF:cover_hero-->
+    <div class="game-viewport cover-hero">
+      <img src="{{cover}}" alt="{{title}}" class="cover-hero-img">
+    </div>
+    <!--ENDIF:cover_hero-->
+
+    <!--IF:placeholder_hero-->
+    <div class="game-viewport cover-hero placeholder-hero">
+      <div class="placeholder-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <span>{{title}}</span>
+      </div>
+    </div>
+    <!--ENDIF:placeholder_hero-->
+
+    <!--IF:youtube_video-->
+    <div class="content-area">
+      <div class="content-section">
+        <h2>Video</h2>
+        <div class="trailer-embed">
+          <iframe src="{{youtube_video}}" style="width:100%;height:100%;border:none;position:absolute;top:0;left:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+    <!--ENDIF:youtube_video-->
+
+    <!-- Description -->
+    <div class="content-area">
+      <!--IF:long_description-->
+      <div class="content-section">
+        <h2>About This Model</h2>
+        {{long_description}}
+      </div>
+      <!--ENDIF:long_description-->
+
+      <!--IF:credits-->
+      <div class="content-section">
+        <h2>Credits</h2>
+        <div class="credits-list">
+          {{credits_html}}
+        </div>
+      </div>
+      <!--ENDIF:credits-->
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!--IF:model_downloads-->
+    <div class="sidebar-section">
+      <h3>Download Models</h3>
+      <div class="downloads-list">
+        <!--LOOP:model_downloads-->
+        <a href="<!--LOOP_ITEM:href-->" class="download-item" download>
+          <span class="download-platform"><!--LOOP_ITEM:label--></span>
+          <span class="download-size"><!--LOOP_ITEM:size--></span>
+        </a>
+        <!--ENDLOOP:model_downloads-->
+      </div>
+    </div>
+    <!--ENDIF:model_downloads-->
+
+    <div class="sidebar-section">
+      <h3>Model Info</h3>
+      <div class="info-grid">
+        <span class="info-label">Status</span>
+        <span class="info-value"><span class="status-pill {{status}}">{{status_label}}</span></span>
+        <!--IF:platform-->
+        <span class="info-label">Platform</span>
+        <span class="info-value">{{platform}}</span>
+        <!--ENDIF:platform-->
+        <span class="info-label">Author</span>
+        <span class="info-value"><a href="../../index.html">{{author}}</a></span>
+        <!--IF:category-->
+        <span class="info-label">Category</span>
+        <span class="info-value">{{category}}</span>
+        <!--ENDIF:category-->
+        <!--IF:license-->
+        <span class="info-label">License</span>
+        <span class="info-value">{{license}}</span>
+        <!--ENDIF:license-->
+        <!--IF:made_with-->
+        <span class="info-label">Made with</span>
+        <span class="info-value">{{made_with}}</span>
+        <!--ENDIF:made_with-->
+        <!--IF:version-->
+        <span class="info-label">Version</span>
+        <span class="info-value">{{version}}</span>
+        <!--ENDIF:version-->
+        <!--IF:date_created-->
+        <span class="info-label">Published</span>
+        <span class="info-value">{{date_created_display}}</span>
+        <!--ENDIF:date_created-->
+        <!--IF:date_updated_display-->
+        <span class="info-label">Updated</span>
+        <span class="info-value">{{date_updated_display}}</span>
+        <!--ENDIF:date_updated_display-->
+      </div>
+    </div>
+
+    <!--IF:tags-->
+    <div class="sidebar-section">
+      <h3>Tags</h3>
+      <div class="tag-list">
+        {{tags_html}}
+      </div>
+    </div>
+    <!--ENDIF:tags-->
+
+    <!--IF:links-->
+    <div class="sidebar-section">
+      <h3>Links</h3>
+      <div class="sidebar-links">
+        <!--LOOP:links-->
+        <a href="<!--LOOP_ITEM:url-->" class="sidebar-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <!--LOOP_ITEM:label-->
+        </a>
+        <!--ENDLOOP:links-->
+      </div>
+    </div>
+    <!--ENDIF:links-->
+
+    <!--IF:screenshots-->
+    <div class="sidebar-section">
+      <h3>Screenshots</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        {{screenshots_html}}
+      </div>
+    </div>
+    <!--ENDIF:screenshots-->
+
+  </aside>
+</div>
+
+<!--IF:screenshots-->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <button class="lightbox-nav lightbox-prev" onclick="event.stopPropagation();navLightbox(-1)">&lsaquo;</button>
+  <img id="lightboxImg" src="" alt="Screenshot">
+  <button class="lightbox-nav lightbox-next" onclick="event.stopPropagation();navLightbox(1)">&rsaquo;</button>
+</div>
+<!--ENDIF:screenshots-->
+
+<!-- SUPPORT BAR -->
+<!--IF:support_links-->
+<div class="support-bar">
+  <div class="support-bar-inner">
+    <span class="support-bar-label">Support the Creator</span>
+    <div class="support-links">
+      <!--LOOP:support_links-->
+      <a href="<!--LOOP_ITEM:url-->" class="support-link" target="_blank" rel="noopener">
+        <span class="support-provider"><!--LOOP_ITEM:provider--></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+      <!--ENDLOOP:support_links-->
+    </div>
+  </div>
+</div>
+<!--ENDIF:support_links-->
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <span>{{site.footer_text}}</span>
+  <span class="powered-by">powered by <a href="https://github.com/shaneobi/tickle">tickle</a></span>
+  <div class="footer-links">
+    <a href="../../index.html">All Games</a>
+    <!--LOOP:site.footer_links-->
+    <a href="<!--LOOP_ITEM:url-->"><!--LOOP_ITEM:label--></a>
+    <!--ENDLOOP:site.footer_links-->
+  </div>
+</footer>
+
+<!--IF:screenshots-->
+<script>
+  var screenshotSrcs = [{{screenshots_js}}];
+  var currentSsIndex = 0;
+
+  function openLightbox(index) {
+    currentSsIndex = index;
+    var lb = document.getElementById('lightbox');
+    document.getElementById('lightboxImg').src = screenshotSrcs[index];
+    lb.classList.add('active');
+  }
+
+  function closeLightbox(e) {
+    if (e && e.target && e.target.tagName === 'IMG') return;
+    document.getElementById('lightbox').classList.remove('active');
+  }
+
+  function navLightbox(dir) {
+    currentSsIndex = (currentSsIndex + dir + screenshotSrcs.length) % screenshotSrcs.length;
+    document.getElementById('lightboxImg').src = screenshotSrcs[currentSsIndex];
+  }
+
+  document.addEventListener('keydown', function(e) {
+    var lb = document.getElementById('lightbox');
+    if (!lb || !lb.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') navLightbox(-1);
+    if (e.key === 'ArrowRight') navLightbox(1);
+  });
+</script>
+<!--ENDIF:screenshots-->
+
+<script>
+(function(){try{var h=location.hostname;if(h&&h!=='localhost'&&h!=='127.0.0.1'){var x=new XMLHttpRequest();x.open('GET',location.origin+'/api/hit/{{slug}}');x.send();}}catch(e){}})();
+</script>
+
+<!--IF:viewer_file-->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+var modelPaths = [{{viewer_models_js}}];
+var modelLabels = [{{viewer_labels_js}}];
+var currentModelIndex = 0;
+var currentMesh = null;
+
+var canvas = document.getElementById('modelCanvas');
+var viewport = document.getElementById('modelViewport');
+var loading = document.getElementById('modelLoading');
+var labelEl = document.getElementById('modelLabel');
+var thumbstrip = document.getElementById('modelThumbstrip');
+
+// Shared material and loader
+var material = new THREE.MeshStandardMaterial({
+  color: 0x8888cc,
+  metalness: 0.2,
+  roughness: 0.6
+});
+var loader = new STLLoader();
+
+// Read --bg from CSS for scene background
+var styles = getComputedStyle(document.documentElement);
+var bgColor = styles.getPropertyValue('--bg').trim() || '#0c0c14';
+var borderColor = styles.getPropertyValue('--border').trim() || '#262640';
+
+// ── Main scene ──
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(bgColor);
+
+var w = viewport.clientWidth;
+var h = viewport.clientHeight;
+
+var camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 2000);
+var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+renderer.setSize(w, h);
+renderer.setPixelRatio(window.devicePixelRatio);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 7);
+scene.add(dirLight);
+var backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+backLight.position.set(-5, 5, -5);
+scene.add(backLight);
+
+var gridColor = new THREE.Color(borderColor);
+var grid = new THREE.GridHelper(20, 20, gridColor, gridColor);
+grid.material.opacity = 0.3;
+grid.material.transparent = true;
+scene.add(grid);
+
+var controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+
+var savedCamPos, savedCamTarget;
+
+// ── Load model into main viewer ──
+function loadModel(index) {
+  if (index < 0 || index >= modelPaths.length) return;
+  currentModelIndex = index;
+  loading.classList.add('active');
+
+  // Update label
+  labelEl.innerHTML = '<span class="engine-dot"></span> ' +
+    modelLabels[index] + ' (' + (index + 1) + '/' + modelPaths.length + ')';
+
+  // Update thumb active state
+  var thumbs = thumbstrip.querySelectorAll('.model-thumb');
+  thumbs.forEach(function(t, i) {
+    t.classList.toggle('active', i === index);
+  });
+
+  // Remove old mesh
+  if (currentMesh) {
+    scene.remove(currentMesh);
+    currentMesh.geometry.dispose();
+    currentMesh = null;
+  }
+
+  loader.load(modelPaths[index], function(geometry) {
+    geometry.computeBoundingBox();
+    var box = geometry.boundingBox;
+    var center = new THREE.Vector3();
+    box.getCenter(center);
+    var size = new THREE.Vector3();
+    box.getSize(size);
+    var maxDim = Math.max(size.x, size.y, size.z);
+    var scale = 4 / maxDim;
+
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.scale.set(scale, scale, scale);
+    mesh.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+    scene.add(mesh);
+    currentMesh = mesh;
+
+    var dist = 6;
+    camera.position.set(dist, dist * 0.7, dist);
+    controls.target.set(0, (size.y * scale) / 2, 0);
+    controls.update();
+
+    savedCamPos = camera.position.clone();
+    savedCamTarget = controls.target.clone();
+
+    loading.classList.remove('active');
+  }, undefined, function() {
+    loading.classList.remove('active');
+  });
+}
+
+// ── Thumbnail rendering ──
+function renderThumbnail(thumbCanvas, modelPath) {
+  var tw = 100, th = 80;
+  var tScene = new THREE.Scene();
+  tScene.background = new THREE.Color(bgColor);
+  var tCamera = new THREE.PerspectiveCamera(45, tw / th, 0.1, 100);
+  var tRenderer = new THREE.WebGLRenderer({ canvas: thumbCanvas, antialias: true });
+  tRenderer.setSize(tw, th);
+
+  tScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  var tDir = new THREE.DirectionalLight(0xffffff, 0.8);
+  tDir.position.set(5, 10, 7);
+  tScene.add(tDir);
+
+  loader.load(modelPath, function(geometry) {
+    geometry.computeBoundingBox();
+    var box = geometry.boundingBox;
+    var center = new THREE.Vector3();
+    box.getCenter(center);
+    var size = new THREE.Vector3();
+    box.getSize(size);
+    var maxDim = Math.max(size.x, size.y, size.z);
+    var scale = 3 / maxDim;
+
+    var mesh = new THREE.Mesh(geometry, material.clone());
+    mesh.scale.set(scale, scale, scale);
+    mesh.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+    tScene.add(mesh);
+
+    tCamera.position.set(4, 3, 4);
+    tCamera.lookAt(0, (size.y * scale) / 2, 0);
+
+    tRenderer.render(tScene, tCamera);
+    // Clean up renderer context after single render
+    tRenderer.dispose();
+  });
+}
+
+// ── Build thumbnail strip ──
+if (modelPaths.length > 1) {
+  modelPaths.forEach(function(path, i) {
+    var thumb = document.createElement('div');
+    thumb.className = 'model-thumb' + (i === 0 ? ' active' : '');
+    thumb.onclick = function() { loadModel(i); };
+
+    var tc = document.createElement('canvas');
+    thumb.appendChild(tc);
+
+    var label = document.createElement('div');
+    label.className = 'model-thumb-label';
+    label.textContent = modelLabels[i];
+    thumb.appendChild(label);
+
+    thumbstrip.appendChild(thumb);
+    renderThumbnail(tc, path);
+  });
+}
+
+// Load first model
+loadModel(0);
+
+// ── Animate ──
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// ── Resize ──
+function onResize() {
+  var w = viewport.clientWidth;
+  var h = viewport.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+window.addEventListener('resize', onResize);
+document.addEventListener('fullscreenchange', function() {
+  setTimeout(onResize, 100);
+});
+
+// ── Reset camera ──
+window.resetCamera = function() {
+  if (savedCamPos && savedCamTarget) {
+    camera.position.copy(savedCamPos);
+    controls.target.copy(savedCamTarget);
+    controls.update();
+  }
+};
+
+// ── Fullscreen ──
+window.toggleFullscreen = function() {
+  if (!document.fullscreenElement) {
+    viewport.requestFullscreen().catch(function() {
+      viewport.classList.toggle('fullscreen');
+    });
+  } else {
+    document.exitFullscreen();
+  }
+};
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    viewport.classList.remove('fullscreen');
+  }
+});
+</script>
+<!--ENDIF:viewer_file-->
+
+</body>
+</html>

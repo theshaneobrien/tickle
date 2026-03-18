@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tickle admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c14;
+    --bg-raised: #13131f;
+    --bg-card: #191928;
+    --bg-card-hover: #1f1f34;
+    --border: #262640;
+    --border-hover: #3a3a60;
+    --accent: #ff6b6b;
+    --accent-secondary: #feca57;
+    --accent-cool: #48dbfb;
+    --accent-green: #00d2d3;
+    --accent-jam: #a86bff;
+    --text: #e2e2ee;
+    --text-dim: #8888a8;
+    --text-muted: #555570;
+    --tag-bg: #1e1e35;
+    --shadow: 0 2px 20px rgba(0,0,0,0.4);
+    --card-radius: 6px;
+    --topbar-bg: color-mix(in srgb, var(--bg) 90%, transparent);
+    --font-display: 'Silkscreen', cursive;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  }
+  .bg-pattern[data-pattern="squares"] {
+    opacity: 0.03;
+    background-image: linear-gradient(var(--accent) 1px, transparent 1px),
+      linear-gradient(90deg, var(--accent) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .bg-pattern[data-pattern="hex"] {
+    opacity: 0.04;
+    --h: 52px; --w: 60px;
+    background-image:
+      linear-gradient(30deg, var(--accent) 12%, transparent 12.5%, transparent 87%, var(--accent) 87.5%),
+      linear-gradient(150deg, var(--accent) 12%, transparent 12.5%, transparent 87%, var(--accent) 87.5%),
+      linear-gradient(30deg, var(--accent) 12%, transparent 12.5%, transparent 87%, var(--accent) 87.5%),
+      linear-gradient(150deg, var(--accent) 12%, transparent 12.5%, transparent 87%, var(--accent) 87.5%),
+      linear-gradient(60deg, color-mix(in srgb, var(--accent) 70%, transparent) 25%, transparent 25.5%, transparent 75%, color-mix(in srgb, var(--accent) 70%, transparent) 75%),
+      linear-gradient(60deg, color-mix(in srgb, var(--accent) 70%, transparent) 25%, transparent 25.5%, transparent 75%, color-mix(in srgb, var(--accent) 70%, transparent) 75%);
+    background-size: var(--w) var(--h);
+    background-position: 0 0, 0 0, calc(var(--w) / 2) calc(var(--h) / 2), calc(var(--w) / 2) calc(var(--h) / 2), 0 0, calc(var(--w) / 2) calc(var(--h) / 2);
+  }
+  .bg-pattern[data-pattern="image"] { opacity: 1; }
+  .bg-pattern[data-pattern="image"][data-mode="fill"] { background-size: cover; background-position: center; background-repeat: no-repeat; }
+  .bg-pattern[data-pattern="image"][data-mode="stretch"] { background-size: 100% 100%; background-repeat: no-repeat; }
+  .bg-pattern[data-pattern="image"][data-mode="tile"] { background-size: auto; background-repeat: repeat; }
+  .bg-pattern[data-pattern="none"] { display: none;
+  }
+
+  /* ═══ TOPBAR ═══ */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--topbar-bg); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 24px; }
+
+  .site-logo {
+    font-family: var(--font-display); font-size: 1.1rem;
+    color: var(--accent); text-decoration: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .site-logo .site-logo-name {
+    color: var(--text);
+  }
+
+  .site-logo .admin-tag {
+    font-family: var(--font-mono); font-size: 0.6rem;
+    color: var(--accent-cool); background: color-mix(in srgb, var(--accent-cool) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-cool) 20%, transparent);
+    padding: 1px 6px; border-radius: 3px;
+  }
+
+  .btn-exit {
+    background: color-mix(in srgb, var(--accent-cool) 8%, transparent); border-color: color-mix(in srgb, var(--accent-cool) 25%, transparent);
+    color: var(--accent-cool);
+  }
+  .btn-exit:hover { background: color-mix(in srgb, var(--accent-cool) 15%, transparent); border-color: var(--accent-cool); color: var(--accent-cool); }
+
+  .admin-footer {
+    text-align: center; font-family: var(--font-mono);
+    font-size: 0.65rem; color: var(--text-muted);
+    opacity: 0.5; padding: 40px 0 16px;
+    position: relative; z-index: 1;
+  }
+  .admin-footer a {
+    color: var(--text-muted); text-decoration: none;
+  }
+  .admin-footer a:hover { color: var(--accent); }
+
+  .admin-nav { display: flex; gap: 4px; list-style: none; }
+
+  .admin-nav button {
+    background: none; border: 1px solid transparent;
+    color: var(--text-dim); padding: 6px 14px; border-radius: 4px;
+    font-size: 0.82rem; font-weight: 500; cursor: pointer;
+    font-family: var(--font-body); transition: all 0.2s;
+  }
+
+  .admin-nav button:hover { color: var(--text); background: var(--bg-card); }
+  .admin-nav button.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+  .topbar-actions { display: flex; gap: 8px; }
+
+  /* ═══ BUTTONS ═══ */
+  .btn {
+    padding: 7px 16px; border-radius: 4px; font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+    font-family: var(--font-body); transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+    text-decoration: none; color: var(--text-dim);
+  }
+
+  .btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .btn-primary:hover { filter: brightness(1.15); }
+  .btn-secondary { background: var(--bg-card); color: var(--text-dim); }
+  .btn-secondary:hover { color: var(--text); border-color: var(--border-hover); }
+  .btn-danger { background: none; color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .btn-danger:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .btn-success { background: var(--accent-green); color: var(--bg); border-color: var(--accent-green); }
+  .btn-success:hover { filter: brightness(1.15); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ═══ MAIN ═══ */
+  .main { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ═══ SETUP ═══ */
+  .setup-card {
+    max-width: 500px; margin: 80px auto;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--card-radius); padding: 40px; text-align: center;
+  }
+
+  .setup-card h1 {
+    font-family: var(--font-display); font-size: 1.5rem;
+    margin-bottom: 8px; color: var(--accent);
+  }
+
+  .setup-card p { color: var(--text-dim); margin-bottom: 24px; font-size: 0.9rem; }
+
+  /* ═══ ONBOARDING TOOLTIP ═══ */
+  .onboarding-tooltip {
+    position: absolute;
+    background: var(--accent-secondary);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 6px;
+    z-index: 200;
+    white-space: nowrap;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    animation: tooltipBounce 1.5s ease-in-out infinite;
+    cursor: pointer;
+    max-width: calc(100vw - 16px);
+    white-space: normal;
+  }
+  .onboarding-tooltip::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid var(--accent-secondary);
+  }
+  @keyframes tooltipBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+
+  /* ═══ FORMS ═══ */
+  .form-group { margin-bottom: 16px; text-align: left; }
+
+  .form-group label {
+    display: block; font-size: 0.78rem; font-weight: 500;
+    color: var(--text-dim); margin-bottom: 6px;
+    font-family: var(--font-mono);
+  }
+
+  .form-input, .form-textarea, .form-select {
+    width: 100%; padding: 9px 12px;
+    background: var(--bg-raised); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text);
+    font-family: var(--font-body); font-size: 0.88rem;
+    outline: none; transition: border-color 0.2s;
+  }
+
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+  .form-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+  .form-select {
+    appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555570' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    padding-right: 30px;
+  }
+
+  .form-select option { background: var(--bg-card); color: var(--text); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .form-hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+
+  .slug-preview {
+    font-family: var(--font-mono); font-size: 0.75rem;
+    color: var(--accent-cool); margin-top: 4px;
+  }
+
+  /* ═══ GAME LIST ═══ */
+  .list-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .list-header h2 { font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.5px; }
+
+  .game-list {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+  }
+
+  .game-list-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--card-radius); padding: 16px;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+
+  .game-list-card:hover {
+    border-color: var(--border-hover); background: var(--bg-card-hover);
+    transform: translateY(-2px);
+  }
+
+  .game-list-icon {
+    width: 48px; height: 48px; border-radius: var(--card-radius);
+    background: var(--bg-raised); border: 1px solid var(--border);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  .game-list-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+  .game-list-icon .letter {
+    font-family: var(--font-display); font-size: 1.2rem; color: var(--text-muted);
+  }
+
+  .game-list-info { flex: 1; min-width: 0; }
+
+  .game-list-title { font-family: var(--font-display); font-size: 0.85rem; margin-bottom: 4px; }
+
+  .game-list-meta {
+    font-size: 0.75rem; color: var(--text-muted);
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+
+  .status-pill {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .status-pill.in-dev { background: color-mix(in srgb, var(--accent-secondary) 15%, transparent); color: var(--accent-secondary); border: 1px solid color-mix(in srgb, var(--accent-secondary) 25%, transparent); }
+  .status-pill.released { background: color-mix(in srgb, var(--accent-green) 15%, transparent); color: var(--accent-green); border: 1px solid color-mix(in srgb, var(--accent-green) 25%, transparent); }
+  .status-pill.prototype { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+  .status-pill.jam { background: color-mix(in srgb, var(--accent-jam) 15%, transparent); color: var(--accent-jam); border: 1px solid color-mix(in srgb, var(--accent-jam) 25%, transparent); }
+
+  .engine-badge { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-green); }
+
+  .game-list-actions { display: flex; gap: 6px; flex-shrink: 0; align-self: center; }
+
+  .icon-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    width: 30px; height: 30px; border-radius: 4px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; font-size: 0.8rem;
+  }
+
+  .icon-btn:hover { color: var(--text); border-color: var(--border-hover); }
+  .icon-btn.delete:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+
+  .empty-list {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-muted); font-size: 0.9rem;
+    grid-column: 1 / -1;
+  }
+
+  .empty-list h3 { font-family: var(--font-display); margin-bottom: 8px; color: var(--text-dim); }
+
+  /* ═══ IMPORT ═══ */
+  .import-input-row {
+    display: flex; gap: 10px; margin-bottom: 20px; max-width: 600px;
+  }
+  .import-input-row input { flex: 1; }
+
+  .import-results { max-width: 800px; }
+
+  .import-preview {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--card-radius); padding: 20px; margin-bottom: 16px;
+  }
+  .import-preview-header {
+    display: flex; gap: 16px; margin-bottom: 16px;
+  }
+  .import-preview-cover {
+    width: 200px; height: 120px; border-radius: 4px; object-fit: cover;
+    background: var(--bg-raised); border: 1px solid var(--border); flex-shrink: 0;
+  }
+  .import-preview-info { flex: 1; min-width: 0; }
+  .import-preview-info h3 {
+    font-family: var(--font-display); font-size: 0.95rem; margin-bottom: 6px;
+  }
+  .import-preview-info p {
+    font-size: 0.82rem; color: var(--text-dim); margin-bottom: 8px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .import-preview-meta {
+    display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.75rem;
+  }
+  .import-preview-screenshots {
+    display: flex; gap: 8px; margin-top: 12px; overflow-x: auto;
+  }
+  .import-preview-screenshots img {
+    height: 80px; border-radius: 4px; border: 1px solid var(--border);
+  }
+  .import-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  .import-game-list { display: grid; gap: 8px; }
+  .import-game-item {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--card-radius); padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .import-game-item.imported { opacity: 0.5; }
+  .import-game-item.error { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .import-game-item.success { border-color: color-mix(in srgb, var(--accent-green) 30%, transparent); }
+  .import-game-thumb {
+    width: 40px; height: 40px; border-radius: 4px; object-fit: cover;
+    background: var(--bg-raised); border: 1px solid var(--border); flex-shrink: 0;
+  }
+  .import-game-title { flex: 1; font-size: 0.85rem; }
+  .import-game-status {
+    font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted);
+  }
+
+  .import-progress {
+    background: var(--bg-raised); border: 1px solid var(--border);
+    border-radius: 4px; height: 6px; margin: 12px 0; overflow: hidden;
+  }
+  .import-progress-bar {
+    height: 100%; background: var(--accent-green); transition: width 0.3s;
+  }
+
+  .import-warnings {
+    font-size: 0.75rem; color: var(--accent-secondary); margin-top: 8px;
+  }
+  .import-error-msg {
+    font-size: 0.82rem; color: var(--accent); margin-top: 8px;
+  }
+
+  /* ═══ EDITOR ═══ */
+  .editor-dirty-banner {
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-card)); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    color: var(--accent); padding: 10px 16px; border-radius: 4px;
+    font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500;
+    display: none; align-items: center; gap: 10px;
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5); max-width: 500px; width: max-content;
+  }
+  .editor-dirty-banner.visible { display: flex; }
+  .editor-dirty-banner .dirty-dot {
+    width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
+    flex-shrink: 0; animation: dirtyPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes dirtyPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+  .editor-dirty-banner span:last-child {
+    flex: 1; font-size: 0.8rem;
+    font-family: var(--font-body); font-weight: 600;
+  }
+
+  .visibility-toggle {
+    display: flex; align-items: center; gap: 6px; font-size: 0.75rem;
+    font-family: var(--font-mono); cursor: pointer;
+    padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .visibility-toggle.listed { color: var(--accent-green); border-color: color-mix(in srgb, var(--accent-green) 30%, transparent); background: color-mix(in srgb, var(--accent-green) 8%, transparent); }
+  .visibility-toggle.unlisted { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .visibility-toggle input { cursor: pointer; }
+  .update-date-label {
+    display: flex; align-items: center; gap: 6px; margin-top: 6px;
+    font-size: 0.78rem; color: var(--text-dim); cursor: pointer;
+    font-family: var(--font-body);
+  }
+  .update-date-label input { cursor: pointer; accent-color: var(--accent-green); }
+
+  .editor-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; gap: 12px;
+  }
+
+  .editor-header-left { display: flex; align-items: center; gap: 12px; }
+
+  .back-btn {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 1.1rem; padding: 4px; transition: color 0.2s;
+  }
+
+  .back-btn:hover { color: var(--text); }
+  .editor-title { font-family: var(--font-display); font-size: 1rem; }
+
+  .save-indicator {
+    font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);
+  }
+
+  .save-indicator.saving { color: var(--accent-secondary); }
+  .save-indicator.saved { color: var(--accent-green); }
+
+  .editor-sections { display: flex; flex-direction: column; gap: 20px; }
+
+  .editor-section {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--card-radius); padding: 20px;
+  }
+
+  .editor-section h3 {
+    font-family: var(--font-display); font-size: 0.78rem;
+    color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 1.5px; margin-bottom: 16px;
+  }
+
+  /* ═══ UPLOAD ZONE ═══ */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--card-radius);
+    padding: 24px; text-align: center; cursor: pointer;
+    transition: all 0.2s; color: var(--text-muted); font-size: 0.82rem;
+  }
+
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--accent); color: var(--text-dim);
+    background: color-mix(in srgb, var(--accent) 3%, transparent);
+  }
+
+  .upload-zone input[type="file"] { display: none; }
+
+  .upload-zone.uploading {
+    pointer-events: none; opacity: 0.6;
+    border-color: var(--accent-secondary);
+  }
+
+  /* ═══ ENGINE DETECTION CARD ═══ */
+  .engine-detect {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 4px; margin-top: 12px;
+    font-size: 0.82rem;
+  }
+
+  .engine-detect.detected {
+    background: color-mix(in srgb, var(--accent-green) 8%, transparent); border: 1px solid color-mix(in srgb, var(--accent-green) 20%, transparent);
+    color: var(--accent-green);
+  }
+
+  .engine-detect.warning {
+    background: color-mix(in srgb, var(--accent-secondary) 8%, transparent); border: 1px solid color-mix(in srgb, var(--accent-secondary) 20%, transparent);
+    color: var(--accent-secondary);
+  }
+
+  .engine-detect.none {
+    background: var(--bg-raised); border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .engine-detect-icon { font-size: 1.2rem; flex-shrink: 0; }
+
+  /* ═══ FILE LIST ═══ */
+  .file-list {
+    margin-top: 12px; font-size: 0.78rem;
+    max-height: 200px; overflow-y: auto;
+    border: 1px solid var(--border); border-radius: 4px;
+  }
+
+  .file-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono); color: var(--text-dim);
+  }
+
+  .file-item:last-child { border-bottom: none; }
+  .file-item .file-size { color: var(--text-muted); font-size: 0.7rem; margin-left: auto; }
+  .file-delete-btn {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 1rem; padding: 0 0 0 8px; line-height: 1; transition: color 0.15s;
+  }
+  .file-delete-btn:hover { color: var(--accent); }
+
+  /* ═══ SCREENSHOTS ═══ */
+  .screenshot-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+
+  .screenshot-slot {
+    aspect-ratio: 16/9; border: 1px dashed var(--border);
+    border-radius: 4px; overflow: hidden; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; background: var(--bg-raised);
+    font-size: 0.7rem; color: var(--text-muted);
+  }
+
+  .screenshot-slot:hover { border-color: var(--border-hover); }
+  .screenshot-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+  .screenshot-slot .remove-btn {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(0,0,0,0.7); color: var(--accent);
+    border: none; border-radius: 3px; width: 20px; height: 20px;
+    cursor: pointer; font-size: 0.7rem; display: none;
+    align-items: center; justify-content: center;
+  }
+
+  .screenshot-slot:hover .remove-btn { display: flex; }
+
+  /* ═══ DYNAMIC LISTS ═══ */
+  .dynamic-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .dynamic-row { display: flex; gap: 8px; align-items: center; }
+  .dynamic-row .form-input, .dynamic-row .form-select { flex: 1; padding: 6px 10px; font-size: 0.82rem; }
+
+  .dynamic-row .remove-row {
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 0.9rem; padding: 4px; transition: color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .dynamic-row .remove-row:hover { color: var(--accent); }
+
+  .add-row-btn {
+    background: none; border: 1px dashed var(--border);
+    color: var(--text-muted); padding: 6px 12px; border-radius: 4px;
+    cursor: pointer; font-size: 0.78rem; transition: all 0.2s;
+    font-family: var(--font-body); margin-top: 4px;
+  }
+
+  .add-row-btn:hover { border-color: var(--border-hover); color: var(--text-dim); }
+
+  /* ═══ DOWNLOADS MANAGER ═══ */
+  .download-entry {
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 12px; background: var(--bg-raised);
+    border: 1px solid var(--border); border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .download-entry .platform-label {
+    font-family: var(--font-mono); font-size: 0.78rem;
+    color: var(--text); min-width: 70px;
+  }
+
+  .download-entry .file-name {
+    font-family: var(--font-mono); font-size: 0.75rem;
+    color: var(--text-dim); flex: 1; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .download-entry .file-size-label {
+    font-size: 0.72rem; color: var(--text-muted);
+  }
+
+  /* ═══ SITE SETTINGS PREVIEW ═══ */
+  .settings-preview {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--card-radius); overflow: hidden; margin-bottom: 20px;
+  }
+
+  .preview-topbar {
+    background: var(--topbar-bg); border-bottom: 1px solid var(--border);
+    padding: 0 20px; height: 44px; display: flex; align-items: center;
+    justify-content: space-between;
+  }
+
+  .preview-logo {
+    font-family: var(--font-display); font-size: 0.95rem;
+    color: var(--accent); display: flex; align-items: center; gap: 6px;
+  }
+
+  .preview-logo .dot { display: none; }
+
+  .preview-nav { display: flex; gap: 4px; }
+
+  .preview-nav span {
+    font-size: 0.72rem; color: var(--text-dim); padding: 4px 8px;
+    border-radius: 3px;
+  }
+
+  .preview-nav span.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+  .preview-hero {
+    padding: 30px 20px; text-align: center;
+  }
+
+  .preview-badge {
+    display: inline-block; font-family: var(--font-display);
+    font-size: 0.55rem; color: var(--accent-secondary);
+    border: 1px solid color-mix(in srgb, var(--accent-secondary) 25%, transparent); padding: 2px 10px;
+    border-radius: 16px; margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .preview-hero h2 {
+    font-family: var(--font-display); font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+
+  .preview-hero h2 .highlight {
+    background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .preview-hero p {
+    font-size: 0.78rem; color: var(--text-dim); max-width: 400px; margin: 0 auto;
+  }
+
+  .preview-footer {
+    border-top: 1px solid var(--border); padding: 12px 20px;
+    display: flex; justify-content: space-between;
+    font-size: 0.68rem; color: var(--text-muted);
+  }
+
+  .preview-footer-links { display: flex; gap: 12px; }
+  .preview-footer-links span { color: var(--text-dim); }
+
+  /* ═══ SETTINGS TWO-COLUMN LAYOUT ═══ */
+  .settings-columns {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;
+  }
+  @media (max-width: 900px) {
+    .settings-columns { grid-template-columns: 1fr; }
+  }
+
+  /* ═══ NAV LINK ROWS ═══ */
+  .nav-link-row {
+    display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+  }
+
+  .nav-link-row .form-input { flex: 1; padding: 6px 10px; font-size: 0.82rem; }
+
+  .nav-link-row label {
+    font-size: 0.72rem; color: var(--text-muted);
+    display: flex; align-items: center; gap: 4px; cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .nav-link-row input[type="checkbox"] { accent-color: var(--accent); }
+
+  /* ═══ TOAST ═══ */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--card-radius); padding: 12px 20px;
+    font-size: 0.82rem; color: var(--text);
+    box-shadow: var(--shadow); transform: translateY(100px);
+    opacity: 0; transition: all 0.3s ease;
+    max-width: 400px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: rgba(0,210,211,0.4); }
+  .toast.error { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 700px) {
+    .main { padding: 16px; }
+    .form-row, .form-row-3 { grid-template-columns: 1fr; }
+    .game-list { grid-template-columns: 1fr; }
+    .screenshot-grid { grid-template-columns: repeat(2, 1fr); }
+    .editor-header { flex-direction: column; align-items: flex-start; }
+
+    .topbar {
+      height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 8px;
+    }
+    .topbar-left { width: 100%; }
+    .admin-nav button { padding: 4px 10px; font-size: 0.75rem; }
+    .topbar-actions {
+      width: 100%; justify-content: flex-start;
+    }
+    .topbar-actions .btn { padding: 5px 10px; font-size: 0.72rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-pattern" data-pattern="squares"></div>
+
+<nav class="topbar">
+  <div class="topbar-left">
+    <a href="/admin" class="site-logo">
+      <span class="site-logo-name" id="adminLogoName"></span>
+      <span class="admin-tag">admin</span>
+    </a>
+    <div class="admin-nav" id="adminNav">
+      <button class="active" onclick="showView('games')">Games</button>
+      <button onclick="showView('settings')">Site Settings</button>
+    </div>
+  </div>
+  <div class="topbar-actions" id="topbarActions">
+    <button class="btn btn-secondary" onclick="generateAll()">Generate All</button>
+    <a href="/preview/" target="_blank" class="btn btn-secondary">Preview Site</a>
+    <a href="/" class="btn btn-exit">Exit Admin</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- ═══ SETUP ═══ -->
+  <div class="view" id="setupView">
+    <div class="setup-card">
+      <h1>tickle</h1>
+      <p>Set up your game portal. You can change everything later.</p>
+      <form onsubmit="submitSetup(event)">
+        <div class="form-group">
+          <label>Site Name</label>
+          <input class="form-input" id="setupName" placeholder="jeocities" required>
+        </div>
+        <div class="form-group">
+          <label>Site Title</label>
+          <input class="form-input" id="setupTitle" placeholder="games.jeocities.org">
+        </div>
+        <div class="form-group">
+          <label>Tagline</label>
+          <input class="form-input" id="setupTagline" placeholder="A personal collection of games and experiments.">
+        </div>
+        <div class="form-group">
+          <label>Author</label>
+          <input class="form-input" id="setupAuthor" placeholder="Your name">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center;">Create Site</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ GAMES LIST ═══ -->
+  <div class="view" id="gamesView">
+    <div class="list-header">
+      <h2>Games</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="showView('import')">Import from itch.io</button>
+        <button class="btn btn-primary" onclick="showNewGameDialog()">+ New Game</button>
+      </div>
+    </div>
+    <div class="game-list" id="gameList"></div>
+  </div>
+
+  <!-- ═══ GAME EDITOR ═══ -->
+  <div class="view" id="editorView">
+    <div id="dirtyBanner" class="editor-dirty-banner">
+      <span class="dirty-dot"></span>
+      <span id="dirtyBannerText">Static page not yet generated — this game won't appear on the live site.</span>
+    </div>
+    <div class="editor-header">
+      <div class="editor-header-left">
+        <button class="back-btn" onclick="showView('games')">&larr;</button>
+        <span class="editor-title" id="editorTitle">Edit Game</span>
+        <span class="save-indicator" id="saveIndicator"></span>
+        <label class="visibility-toggle">
+          <input type="checkbox" id="visibilityToggle" onchange="toggleVisibility(this.checked)">
+          <span id="visibilityLabel">Listed</span>
+        </label>
+      </div>
+      <div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-success" onclick="generateCurrent()">Generate Page</button>
+          <button class="btn btn-secondary" onclick="previewCurrent()">Preview</button>
+          <button class="btn btn-danger" onclick="deleteCurrent()">Delete</button>
+        </div>
+        <label class="update-date-label">
+          <input type="checkbox" id="updateDateCheck" checked> Update last modified date
+        </label>
+      </div>
+    </div>
+    <div class="editor-sections" id="editorSections"></div>
+  </div>
+
+  <!-- ═══ SETTINGS ═══ -->
+  <div class="view" id="settingsView">
+    <div class="list-header">
+      <h2>Site Settings</h2>
+      <button class="btn btn-primary" onclick="saveSettings()">Save & Regenerate</button>
+    </div>
+    <div id="settingsPreview"></div>
+    <div class="settings-columns">
+      <div id="settingsFormLeft"></div>
+      <div id="settingsFormRight"></div>
+    </div>
+  </div>
+
+  <!-- ═══ IMPORT ═══ -->
+  <div class="view" id="importView">
+    <div class="list-header">
+      <h2>Import from itch.io</h2>
+      <button class="btn btn-secondary" onclick="showView('games')">&larr; Back to Games</button>
+    </div>
+    <div class="import-input-row">
+      <input class="form-input" id="itchUrl" placeholder="https://author.itch.io/game-slug or https://author.itch.io" onkeydown="if(event.key==='Enter')scanItch()">
+      <button class="btn btn-primary" id="itchScanBtn" onclick="scanItch()">Scan</button>
+    </div>
+    <div id="importResults" class="import-results"></div>
+  </div>
+
+  <!-- ═══ NEW GAME ═══ -->
+  <div class="view" id="newGameView">
+    <div class="setup-card" style="margin-top:40px;">
+      <h1 style="font-size:1.1rem;">New Game</h1>
+      <p>Enter a title to get started.</p>
+      <form onsubmit="createGame(event)">
+        <div class="form-group">
+          <label>Title</label>
+          <input class="form-input" id="newGameTitle" placeholder="My Awesome Game" required oninput="updateSlugPreview()">
+          <div class="slug-preview" id="slugPreview"></div>
+        </div>
+        <div class="form-row">
+          <button type="submit" class="btn btn-primary" style="justify-content:center;">Create</button>
+          <button type="button" class="btn btn-secondary" style="justify-content:center;" onclick="showView('games')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+
+var currentGame = null;
+var saveTimeout = null;
+var siteConfig = null;
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+
+async function api(path, opts) {
+  opts = opts || {};
+  var res = await fetch('/api' + path, {
+    headers: Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {}),
+    method: opts.method || 'GET',
+    body: opts.body,
+  });
+  return res.json();
+}
+
+function toast(msg, type) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type || '');
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.className = 'toast'; }, 3000);
+}
+
+function slugify(text) {
+  return text.toLowerCase().trim()
+    .replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+function updateExitLink() {
+  var exitLink = document.querySelector('.btn-exit');
+  if (!exitLink || !siteConfig) return;
+  var publicPort = siteConfig._public_port || 8080;
+  var adminPort = siteConfig._admin_port || 8081;
+  if (String(window.location.port) === String(adminPort) && publicPort !== adminPort) {
+    exitLink.href = window.location.protocol + '//' + window.location.hostname + ':' + publicPort + '/';
+  }
+}
+
+function esc(val) {
+  if (val === undefined || val === null) return '';
+  return String(val).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// ═══════════════════════════════════════════════════════
+//  VIEW MANAGEMENT
+// ═══════════════════════════════════════════════════════
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.getElementById(name + 'View').classList.add('active');
+
+  // Hide topbar nav/actions during setup
+  var isSetup = (name === 'setup');
+  document.getElementById('adminNav').style.display = isSetup ? 'none' : '';
+  document.getElementById('topbarActions').style.display = isSetup ? 'none' : '';
+
+  document.querySelectorAll('#adminNav button').forEach(function(b) { b.classList.remove('active'); });
+  if (name === 'games' || name === 'editor' || name === 'newGame' || name === 'import') {
+    document.querySelector('#adminNav button:first-child').classList.add('active');
+  } else if (name === 'settings') {
+    document.querySelector('#adminNav button:last-child').classList.add('active');
+  }
+
+  if (name === 'games') loadGameList();
+  if (name === 'settings') loadSettings();
+}
+
+// ═══════════════════════════════════════════════════════
+//  SETUP
+// ═══════════════════════════════════════════════════════
+
+function updateAdminLogo() {
+  var el = document.getElementById('adminLogoName');
+  if (siteConfig && siteConfig.site_logo_image) {
+    el.innerHTML = '<img src="/preview/' + esc(siteConfig.site_logo_image) + '?v=' + (siteConfig._logo_cache_bust || '') + '" style="height:24px;">';
+  } else {
+    el.textContent = (siteConfig && siteConfig.site_name) || 'tickle';
+  }
+}
+
+async function applyAdminTheme(themeName) {
+  var el = document.getElementById('adminThemeStyle');
+  if (!el) {
+    el = document.createElement('style');
+    el.id = 'adminThemeStyle';
+    document.head.appendChild(el);
+  }
+  if (!themeName || themeName === 'default') {
+    el.textContent = '';
+    return;
+  }
+  try {
+    var data = await api('/theme-css/' + encodeURIComponent(themeName));
+    el.textContent = data.css || '';
+  } catch (e) {
+    el.textContent = '';
+  }
+}
+
+async function checkSetup() {
+  var data = await api('/site');
+  if (!data || data.exists === false || !data.site_name) {
+    updateAdminLogo();
+    showView('setup');
+  } else {
+    siteConfig = data;
+    updateAdminLogo();
+    updateExitLink();
+    applyAdminTheme(data.theme);
+    updateBgPreview();
+    showView('games');
+  }
+}
+
+async function submitSetup(e) {
+  e.preventDefault();
+  var name = document.getElementById('setupName').value.trim();
+  var title = document.getElementById('setupTitle').value.trim() || name;
+  var tagline = document.getElementById('setupTagline').value.trim();
+  var author = document.getElementById('setupAuthor').value.trim();
+
+  var config = {
+    site_name: name, site_title: title,
+    site_tagline: tagline || 'A personal collection of games and experiments.',
+    site_url: '', site_author: author || name,
+    site_badge: '\u{1f579}\u{fe0f} Self-hosted indie corner',
+    site_badge_emoji: '',
+    nav_links: [{ label: 'Games', url: '/', active: true }],
+    footer_links: [], footer_text: '\u00a9 ' + name,
+  };
+
+  await api('/site', { method: 'PUT', body: JSON.stringify(config) });
+  siteConfig = config;
+  updateAdminLogo();
+  toast('Site created!', 'success');
+  showOnboarding = true;
+  showView('games');
+}
+
+var showOnboarding = false;
+
+function showImportTip() {
+  var old = document.getElementById('importTipBanner');
+  if (old) old.remove();
+
+  var banner = document.createElement('div');
+  banner.id = 'importTipBanner';
+  banner.style.cssText = 'background:color-mix(in srgb, var(--accent-cool) 10%, transparent);border:1px solid color-mix(in srgb, var(--accent-cool) 30%, transparent);color:var(--accent-cool);padding:12px 16px;border-radius:4px;font-size:0.82rem;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;line-height:1.5;';
+  banner.innerHTML =
+    '<div style="flex:1;">' +
+      '<strong>Imported from itch.io</strong> — metadata and images have been pulled in. ' +
+      'You\'ll need to manually upload your <strong>web build</strong> (.zip of your Godot/Unity export) ' +
+      'and any <strong>downloadable binaries</strong> (Windows, Linux, etc). ' +
+      'This is intentional — game files aren\'t imported automatically.' +
+    '</div>' +
+    '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--accent-cool);cursor:pointer;font-size:1.1rem;line-height:1;opacity:0.6;flex-shrink:0;">&times;</button>';
+
+  var target = document.getElementById('editorSections') || document.getElementById('gameList');
+  if (target) target.parentElement.insertBefore(banner, target);
+}
+
+function positionTooltip(tip, btn) {
+  var rect = btn.getBoundingClientRect();
+  var maxW = Math.min(320, window.innerWidth - 16);
+  tip.style.maxWidth = maxW + 'px';
+  var tipW = tip.offsetWidth;
+  var btnCenterX = rect.left + rect.width / 2;
+  var leftPos = btnCenterX - tipW / 2;
+  leftPos = Math.max(8, Math.min(leftPos, window.innerWidth - tipW - 8));
+  tip.style.top = (rect.bottom + 10 + window.scrollY) + 'px';
+  tip.style.left = leftPos + 'px';
+}
+
+function showOnboardingTooltip() {
+  // Remove any existing tooltip
+  var old = document.getElementById('onboardingTooltip');
+  if (old) old.remove();
+
+  // Find the "+ New Game" button
+  var btn = document.querySelector('#gamesView .list-header .btn-primary');
+  if (!btn) return;
+
+  var tip = document.createElement('div');
+  tip.id = 'onboardingTooltip';
+  tip.className = 'onboarding-tooltip';
+  tip.textContent = 'Click here to add your first game!';
+
+  document.body.appendChild(tip);
+  positionTooltip(tip, btn);
+
+  // Reposition on resize/scroll
+  function reposition() {
+    if (!tip.parentNode) return;
+    positionTooltip(tip, btn);
+  }
+  window.addEventListener('resize', reposition);
+  window.addEventListener('scroll', reposition);
+
+  // Dismiss on clicking tooltip itself or the target button
+  function dismiss() {
+    if (tip.parentNode) tip.remove();
+    btn.removeEventListener('click', dismiss);
+    window.removeEventListener('resize', reposition);
+    window.removeEventListener('scroll', reposition);
+  }
+  tip.addEventListener('click', dismiss);
+  btn.addEventListener('click', dismiss);
+}
+
+// ═══════════════════════════════════════════════════════
+//  GAME LIST
+// ═══════════════════════════════════════════════════════
+
+async function loadGameList() {
+  var games = await api('/games');
+  var list = document.getElementById('gameList');
+
+  if (!games || games.length === 0) {
+    list.innerHTML = '<div class="empty-list"><h3>No games yet</h3><p>Click "+ New Game" to add your first game.</p></div>';
+    if (showOnboarding) {
+      showOnboarding = false;
+      setTimeout(showOnboardingTooltip, 300);
+    }
+    return;
+  }
+  // Clear any lingering tooltip
+  var oldTip = document.getElementById('onboardingTooltip');
+  if (oldTip) oldTip.remove();
+
+  if (_showImportTip) {
+    _showImportTip = false;
+    setTimeout(showImportTip, 300);
+  }
+
+  var statusLabels = { released: 'Released', 'in-dev': 'In Dev', prototype: 'Prototype', jam: 'Game Jam' };
+
+  list.innerHTML = games.map(function(g) {
+    var status = g.status || 'in-dev';
+    var icon = g.icon
+      ? '<img src="/preview/games/' + g.slug + '/' + g.icon + '" alt="">'
+      : '<span class="letter">' + (g.title || '?')[0] + '</span>';
+
+    return '<div class="game-list-card" onclick="editGame(\'' + g.slug + '\')">' +
+      '<div class="game-list-icon">' + icon + '</div>' +
+      '<div class="game-list-info">' +
+        '<div class="game-list-title">' + esc(g.title || g.slug) + '</div>' +
+        '<div class="game-list-meta">' +
+          '<span class="status-pill ' + status + '">' + (statusLabels[status] || status) + '</span>' +
+          (g.engine ? '<span class="engine-badge">' + esc(g.engine) + '</span>' : '') +
+          (g.game_file ? '<span style="color:var(--accent-green);">playable</span>' : '') +
+          (g.visible === false ? '<span style="color:var(--text-muted);font-style:italic;">unlisted</span>' : '') +
+          (g.views ? '<span style="color:var(--text-dim);">' + g.views + ' views</span>' : '') +
+          '<span>' + (g.date_updated || '') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="game-list-actions">' +
+        '<button class="icon-btn delete" onclick="event.stopPropagation();deleteGame(\'' + g.slug + '\',\'' + esc(g.title) + '\')" title="Delete">&times;</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  NEW GAME
+// ═══════════════════════════════════════════════════════
+
+function showNewGameDialog() {
+  document.getElementById('newGameTitle').value = '';
+  document.getElementById('slugPreview').textContent = '';
+  showView('newGame');
+  document.getElementById('newGameTitle').focus();
+}
+
+function updateSlugPreview() {
+  var title = document.getElementById('newGameTitle').value;
+  var slug = slugify(title);
+  document.getElementById('slugPreview').textContent = slug ? 'slug: ' + slug : '';
+}
+
+async function createGame(e) {
+  e.preventDefault();
+  var title = document.getElementById('newGameTitle').value.trim();
+  if (!title) return;
+
+  var result = await api('/games', { method: 'POST', body: JSON.stringify({ title: title }) });
+  if (result.error) { toast(result.error, 'error'); return; }
+
+  toast('Game created!', 'success');
+  editGame(result.slug);
+}
+
+// ═══════════════════════════════════════════════════════
+//  GAME EDITOR
+// ═══════════════════════════════════════════════════════
+
+var gameDirty = false;
+
+async function editGame(slug) {
+  var game = await api('/games/' + slug);
+  if (game.error) { toast(game.error, 'error'); return; }
+
+  currentGame = game;
+  gameDirty = false;
+  document.getElementById('editorTitle').textContent = game.title || slug;
+
+  // Visibility toggle
+  var vis = document.getElementById('visibilityToggle');
+  var visLabel = document.getElementById('visibilityLabel');
+  var visToggle = visLabel.closest('.visibility-toggle');
+  vis.checked = game.visible !== false;
+  visLabel.textContent = vis.checked ? 'Listed' : 'Unlisted';
+  visToggle.classList.toggle('listed', vis.checked);
+  visToggle.classList.toggle('unlisted', !vis.checked);
+
+  renderEditor(game);
+  showView('editor');
+  checkDirtyState(slug);
+
+  if (_showImportTip) {
+    _showImportTip = false;
+    showImportTip();
+  }
+}
+
+async function checkDirtyState(slug) {
+  // Check if static page exists by peeking the preview route
+  try {
+    var resp = await fetch('/preview/games/' + slug + '/', { method: 'HEAD' });
+    pageExists = resp.ok;
+  } catch(e) {
+    pageExists = false;
+  }
+  if (pageExists) {
+    setDirtyBanner(gameDirty);
+  } else {
+    setDirtyBanner(true, 'Static page not yet generated — this game won\'t appear on the live site.');
+  }
+}
+
+var pageExists = false;
+
+function setDirtyBanner(show, text) {
+  var banner = document.getElementById('dirtyBanner');
+  if (text) document.getElementById('dirtyBannerText').textContent = text;
+  else if (show) document.getElementById('dirtyBannerText').textContent = 'Changes not yet published — regenerate to update the live site.';
+  banner.classList.toggle('visible', !!show);
+  var genBtn = document.querySelector('#editorView .btn-success');
+  if (genBtn) genBtn.textContent = pageExists ? 'Regenerate Page' : 'Generate Page';
+}
+
+function markDirty() {
+  gameDirty = true;
+  setDirtyBanner(true);
+}
+
+function toggleVisibility(checked) {
+  var label = document.getElementById('visibilityLabel');
+  var toggle = label.closest('.visibility-toggle');
+  label.textContent = checked ? 'Listed' : 'Unlisted';
+  toggle.classList.toggle('listed', checked);
+  toggle.classList.toggle('unlisted', !checked);
+  updateField('visible', checked);
+}
+
+function renderEditor(game) {
+  var s = document.getElementById('editorSections');
+  var type = game.type || 'game';
+
+  if (type === '3d-print') {
+    s.innerHTML =
+      renderBasicSection(game) +
+      renderClassificationSection(game) +
+      renderModelUploadSection(game) +
+      renderMediaSection(game) +
+      renderCreditsSection(game) +
+      renderLinksSection(game) +
+      renderMetaSection(game);
+  } else {
+    s.innerHTML =
+      renderBasicSection(game) +
+      renderClassificationSection(game) +
+      renderBuildSection(game) +
+      renderMediaSection(game) +
+      renderDownloadsSection(game) +
+      renderControlsSection(game) +
+      renderCreditsSection(game) +
+      renderLinksSection(game) +
+      renderMetaSection(game);
+    if (getPlayerMode(game) === 'autodetect') loadBuildInfo(game.slug);
+  }
+}
+
+function renderBasicSection(game) {
+  return '<div class="editor-section"><h3>Basic Info</h3>' +
+    fg('Title', '<input class="form-input" value="' + esc(game.title) + '" onchange="updateField(\'title\', this.value)">') +
+    '<div class="form-row">' +
+      fg('Slug', '<input class="form-input" value="' + esc(game.slug) + '" disabled>') +
+      fg('Author', '<input class="form-input" value="' + esc(game.author) + '" onchange="updateField(\'author\', this.value)">') +
+    '</div>' +
+    fg('Short Description', '<input class="form-input" value="' + esc(game.description) + '" onchange="updateField(\'description\', this.value)">') +
+    fg('Full Description (HTML allowed)', '<textarea class="form-textarea" style="min-height:120px;" onchange="updateField(\'long_description\', this.value)">' + esc(game.long_description) + '</textarea>') +
+  '</div>';
+}
+
+function renderClassificationSection(game) {
+  var type = game.type || 'game';
+  var is3d = type === '3d-print';
+
+  var typeOnchange = "updateField('type', this.value); renderEditor(currentGame)";
+
+  var engineRow = is3d ? '' :
+    '<div class="form-row">' +
+      fg('Engine', '<input class="form-input" id="engineField" value="' + esc(game.engine) + '" onchange="updateField(\'engine\', this.value)">') +
+      fg('Engine Version', '<input class="form-input" value="' + esc(game.engine_version) + '" onchange="updateField(\'engine_version\', this.value)">') +
+    '</div>';
+
+  var genreLabel = is3d ? 'Category' : 'Genre';
+  var genrePlaceholder = is3d ? 'Miniatures, Terrain, Functional' : 'Strategy, Exploration';
+  var madeWithPlaceholder = is3d ? 'Blender, FreeCAD' : 'Godot, GDScript';
+
+  var inputRow;
+  if (is3d) {
+    var licenseOptions = [
+      ['', '— Select —'],
+      ['CC0', 'CC0 (Public Domain)'], ['CC BY', 'CC BY'], ['CC BY-SA', 'CC BY-SA'],
+      ['CC BY-NC', 'CC BY-NC'], ['CC BY-NC-SA', 'CC BY-NC-SA'],
+      ['CC BY-ND', 'CC BY-ND'], ['CC BY-NC-ND', 'CC BY-NC-ND'],
+      ['MIT', 'MIT'], ['GPL v3', 'GPL v3'], ['Apache 2.0', 'Apache 2.0'],
+      ['All Rights Reserved', 'All Rights Reserved']
+    ];
+    inputRow = fg('License', selectHtml('input_methods', game.input_methods, licenseOptions));
+  } else {
+    inputRow = fg('Input Methods', '<input class="form-input" value="' + esc(game.input_methods) + '" onchange="updateField(\'input_methods\', this.value)" placeholder="Mouse, Keyboard">');
+  }
+
+  return '<div class="editor-section"><h3>Classification</h3>' +
+    engineRow +
+    '<div class="form-row">' +
+      fg('Status', selectHtml('status', game.status, [
+        ['in-dev', 'In Development'], ['released', 'Released'],
+        ['prototype', 'Prototype'], ['jam', 'Game Jam']
+      ])) +
+      fg('Type', selectHtml('type', game.type, [
+        ['game', 'Game'], ['game-asset', 'Game Assets'], ['tool', 'Tool'],
+        ['album', 'Album / Soundtrack'], ['physical-game', 'Physical Game'],
+        ['comic', 'Comic'], ['book', 'Book'], ['3d-print', '3D Print']
+      ], typeOnchange)) +
+    '</div>' +
+    '<div class="form-row">' +
+      fg(genreLabel, '<input class="form-input" value="' + esc(game.genre) + '" onchange="updateField(\'genre\', this.value)" placeholder="' + genrePlaceholder + '">') +
+      fg('Tags (comma-separated)', '<input class="form-input" value="' + esc((game.tags||[]).join(', ')) + '" onchange="updateField(\'tags\', this.value.split(\',\').map(function(t){return t.trim()}).filter(Boolean))">') +
+    '</div>' +
+    '<div class="form-row">' +
+      fg('Made With', '<input class="form-input" value="' + esc(game.made_with) + '" onchange="updateField(\'made_with\', this.value)" placeholder="' + madeWithPlaceholder + '">') +
+      inputRow +
+    '</div>' +
+  '</div>';
+}
+
+var EMULATOR_SYSTEMS = [
+  {key: 'nes', core: 'fceumm', label: 'NES'},
+  {key: 'snes', core: 'snes9x', label: 'SNES'},
+  {key: 'genesis', core: 'genesis_plus_gx', label: 'Sega Genesis'},
+  {key: 'gb', core: 'gambatte', label: 'Game Boy'},
+  {key: 'gbc', core: 'gambatte', label: 'Game Boy Color'},
+  {key: 'gba', core: 'mgba', label: 'Game Boy Advance'},
+  {key: 'n64', core: 'mupen64plus_next', label: 'Nintendo 64'},
+  {key: 'ps1', core: 'pcsx_rearmed', label: 'PlayStation'},
+  {key: 'arcade', core: 'fbneo', label: 'Arcade (FBNeo)'},
+  {key: 'mastersystem', core: 'genesis_plus_gx', label: 'Master System'},
+  {key: 'gamegear', core: 'genesis_plus_gx', label: 'Game Gear'},
+  {key: 'segacd', core: 'genesis_plus_gx', label: 'Sega CD'}
+];
+
+function getPlayerMode(game) {
+  if (game.emulator_core) return 'emulator';
+  return 'autodetect';
+}
+
+function renderBuildSection(game) {
+  var mode = getPlayerMode(game);
+
+  var modeToggle =
+    '<div style="display:flex;gap:6px;margin-bottom:14px;">' +
+      '<button class="btn ' + (mode === 'autodetect' ? '' : 'btn-secondary') + '" style="flex:1;font-size:0.78rem;padding:6px 10px;" onclick="setPlayerMode(\'autodetect\')">Autodetect</button>' +
+      '<button class="btn ' + (mode === 'emulator' ? '' : 'btn-secondary') + '" style="flex:1;font-size:0.78rem;padding:6px 10px;" onclick="setPlayerMode(\'emulator\')">EmulatorJS</button>' +
+      '<button class="btn ' + (mode === 'manual' ? '' : 'btn-secondary') + '" style="flex:1;font-size:0.78rem;padding:6px 10px;" onclick="setPlayerMode(\'manual\')">Manual</button>' +
+    '</div>';
+
+  var body = '';
+  if (mode === 'emulator') {
+    // System dropdown
+    var opts = EMULATOR_SYSTEMS.map(function(s) {
+      var sel = (game.emulator_core === s.key) ? ' selected' : '';
+      return '<option value="' + s.key + '"' + sel + '>' + esc(s.label) + '</option>';
+    }).join('');
+    body =
+      fg('System', '<select class="form-select" id="emulatorSystem" onchange="setEmulatorCore(this.value)">' +
+        '<option value="">— Select system —</option>' + opts + '</select>') +
+      (game.game_file ? '<div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:10px;">Current ROM: <strong>' + esc(game.game_file) + '</strong></div>' : '') +
+      '<div class="upload-zone" id="romUpload" onclick="document.getElementById(\'romFileInput\').click()"' +
+      ' ondragover="event.preventDefault();this.classList.add(\'dragover\')"' +
+      ' ondragleave="this.classList.remove(\'dragover\')"' +
+      ' ondrop="handleRomDrop(event)">' +
+        '<strong>Upload ROM file</strong><br>' +
+        '<span style="font-size:0.75rem;color:var(--text-muted);">Drop a ROM file here (.bin, .md, .nes, .sfc, .gba, .z64, .n64, etc.)</span>' +
+        '<input type="file" id="romFileInput" onchange="uploadRomFile(this.files[0])">' +
+      '</div>';
+  } else if (mode === 'manual') {
+    body =
+      fg('Game File (entry point HTML)', '<input class="form-input" id="gameFileField" value="' + esc(game.game_file) + '" onchange="updateGameFile(this.value)" placeholder="e.g. my-game.html"><small id="gameFileStatus" style="margin-top:4px;display:block;"></small>');
+  } else {
+    // Autodetect (default)
+    body =
+      fg('Game File (entry point HTML)', '<input class="form-input" id="gameFileField" value="' + esc(game.game_file) + '" onchange="updateGameFile(this.value)" placeholder="e.g. my-game.html"><small id="gameFileStatus" style="margin-top:4px;display:block;"></small>') +
+      '<div class="upload-zone" id="buildUpload" onclick="document.getElementById(\'buildFileInput\').click()"' +
+      ' ondragover="event.preventDefault();this.classList.add(\'dragover\')"' +
+      ' ondragleave="this.classList.remove(\'dragover\')"' +
+      ' ondrop="handleBuildDrop(event)">' +
+        '<strong>Upload game build</strong><br>' +
+        '<span style="font-size:0.75rem;color:var(--text-muted);">Drop a .zip of your Godot/Unity web export here, or click to browse.<br>The zip will be extracted into the game folder.</span>' +
+        '<input type="file" id="buildFileInput" accept=".zip,.html,.wasm,.pck,.js,.data" multiple onchange="uploadBuildFiles(this.files)">' +
+      '</div>' +
+      '<div id="engineDetectInfo"></div>' +
+      '<div id="buildFileList"></div>';
+  }
+
+  return '<div class="editor-section"><h3>Web Player Build</h3>' +
+    modeToggle + body +
+  '</div>';
+}
+
+function renderMediaSection(game) {
+  var iconPreview = game.icon
+    ? '<img src="/preview/games/' + game.slug + '/' + game.icon + '" style="height:48px;border-radius:4px;">'
+    : '<span style="color:var(--text-muted);">Upload icon</span>';
+  var coverPreview = game.cover
+    ? '<img src="/preview/games/' + game.slug + '/' + game.cover + '" style="height:48px;border-radius:4px;">'
+    : '<span style="color:var(--text-muted);">Upload cover</span>';
+
+  return '<div class="editor-section"><h3>Media</h3>' +
+    '<div class="form-row">' +
+      fg('Icon', '<div class="upload-zone" style="padding:12px;" onclick="document.getElementById(\'iconInput\').click()">' +
+        iconPreview + '<input type="file" id="iconInput" accept="image/*" onchange="uploadFile(this.files[0],\'icon\')"></div>') +
+      fg('Cover Image', '<div class="upload-zone" style="padding:12px;" onclick="document.getElementById(\'coverInput\').click()">' +
+        coverPreview + '<input type="file" id="coverInput" accept="image/*" onchange="uploadFile(this.files[0],\'cover\')"></div>') +
+    '</div>' +
+    fg('Screenshots (max 6)', '<div class="screenshot-grid" id="screenshotGrid">' + renderScreenshots(game) + '</div>') +
+  '</div>';
+}
+
+function renderDownloadsSection(game) {
+  var downloads = game.downloads || [];
+  var entries = downloads.map(function(d, i) {
+    var source = d.url
+      ? '<span class="file-name" title="' + esc(d.url) + '">&#x1f517; ' + esc(d.url.length > 40 ? d.url.substring(0, 40) + '...' : d.url) + '</span>'
+      : '<span class="file-name">' + esc(d.file) + '</span>';
+    return '<div class="download-entry">' +
+      '<span class="platform-label">' + esc(d.platform) + '</span>' +
+      source +
+      '<span class="file-size-label">' + esc(d.size) + '</span>' +
+      '<button class="remove-row" onclick="removeDownload(' + i + ')">&times;</button>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="editor-section"><h3>Downloads</h3>' +
+    '<p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:12px;">Upload a file or paste an external URL (Google Drive, Dropbox, etc).</p>' +
+    '<div id="downloadsList">' + entries + '</div>' +
+    '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:8px;">' +
+      '<div class="form-group" style="margin:0;flex:0 0 120px;">' +
+        '<label>Platform</label>' +
+        '<select class="form-select" id="dlPlatform" style="padding:6px 10px;font-size:0.82rem;">' +
+          '<option value="windows">Windows</option>' +
+          '<option value="linux">Linux</option>' +
+          '<option value="macos">macOS</option>' +
+          '<option value="android">Android</option>' +
+          '<option value="other">Other</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="form-group" style="margin:0;flex:1;">' +
+        '<label>File</label>' +
+        '<div class="upload-zone" style="padding:8px;font-size:0.78rem;" onclick="document.getElementById(\'dlFileInput\').click()">' +
+          'Choose file...' +
+          '<input type="file" id="dlFileInput" onchange="uploadDownload(this.files[0])">' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;align-items:flex-end;margin-top:8px;">' +
+      '<div class="form-group" style="margin:0;flex:1;">' +
+        '<label>Or paste URL</label>' +
+        '<input class="form-input" id="dlUrl" placeholder="https://drive.google.com/..." style="font-size:0.82rem;">' +
+      '</div>' +
+      '<div class="form-group" style="margin:0;flex:0 0 80px;">' +
+        '<label>Size</label>' +
+        '<input class="form-input" id="dlSize" placeholder="1.2 GB" style="font-size:0.82rem;">' +
+      '</div>' +
+      '<button class="btn btn-secondary" style="height:34px;white-space:nowrap;" onclick="addDownloadUrl()">Add</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderControlsSection(game) {
+  var rows = (game.controls || []).map(function(c, i) {
+    return '<div class="dynamic-row">' +
+      '<input class="form-input" value="' + esc(c.key) + '" placeholder="Key" onchange="updateControl(' + i + ',\'key\',this.value)">' +
+      '<input class="form-input" value="' + esc(c.action) + '" placeholder="Action" onchange="updateControl(' + i + ',\'action\',this.value)">' +
+      '<button class="remove-row" onclick="removeControl(' + i + ')">&times;</button></div>';
+  }).join('');
+
+  return '<div class="editor-section"><h3>Controls</h3>' +
+    '<div class="dynamic-list" id="controlsList">' + rows + '</div>' +
+    '<button class="add-row-btn" onclick="addControl()">+ Add Control</button></div>';
+}
+
+function renderCreditsSection(game) {
+  var rows = (game.credits || []).map(function(c, i) {
+    return '<div class="dynamic-row">' +
+      '<input class="form-input" value="' + esc(c.role) + '" placeholder="Role" onchange="updateCredit(' + i + ',\'role\',this.value)">' +
+      '<input class="form-input" value="' + esc(c.name) + '" placeholder="Name" onchange="updateCredit(' + i + ',\'name\',this.value)">' +
+      '<input class="form-input" value="' + esc(c.url || '') + '" placeholder="https://..." onchange="updateCredit(' + i + ',\'url\',this.value)" style="flex:0.8;">' +
+      '<button class="remove-row" onclick="removeCredit(' + i + ')">&times;</button></div>';
+  }).join('');
+
+  return '<div class="editor-section"><h3>Credits</h3>' +
+    '<p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;">Add a URL to make the contributor\'s name a clickable link.</p>' +
+    '<div class="dynamic-list" id="creditsList">' + rows + '</div>' +
+    '<button class="add-row-btn" onclick="addCredit()">+ Add Credit</button></div>';
+}
+
+function renderLinksSection(game) {
+  var rows = (game.links || []).map(function(l, i) {
+    return '<div class="dynamic-row">' +
+      '<input class="form-input" value="' + esc(l.label) + '" placeholder="Label" onchange="updateLink(' + i + ',\'label\',this.value)">' +
+      '<input class="form-input" value="' + esc(l.url) + '" placeholder="https://..." onchange="updateLink(' + i + ',\'url\',this.value)">' +
+      '<button class="remove-row" onclick="removeLink(' + i + ')">&times;</button></div>';
+  }).join('');
+
+  return '<div class="editor-section"><h3>Links</h3>' +
+    '<div class="dynamic-list" id="linksList">' + rows + '</div>' +
+    '<button class="add-row-btn" onclick="addLink()">+ Add Link</button></div>';
+}
+
+function renderMetaSection(game) {
+  return '<div class="editor-section"><h3>Meta</h3>' +
+    '<div class="form-row">' +
+      fg('Version', '<input class="form-input" value="' + esc(game.version) + '" onchange="updateField(\'version\', this.value)">') +
+      fg('Platform', '<input class="form-input" value="' + esc(game.platform) + '" onchange="updateField(\'platform\', this.value)">') +
+    '</div>' +
+    '<div class="form-row">' +
+      fg('YouTube URL', '<input class="form-input" value="' + esc(game.youtube_url || '') + '" onchange="updateField(\'youtube_url\', this.value)" placeholder="https://www.youtube.com/embed/...">') +
+      fg('Published', '<input class="form-input" type="date" value="' + esc(game.date_created) + '" onchange="updateField(\'date_created\', this.value)">') +
+      fg('Last Updated', '<input class="form-input" type="date" value="' + esc(game.date_updated) + '" onchange="updateField(\'date_updated\', this.value)">') +
+    '</div>' +
+  '</div>';
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODEL FILES (3D Print type)
+// ═══════════════════════════════════════════════════════
+
+function renderModelUploadSection(game) {
+  var modelFiles = game.model_files || [];
+  var viewerFile = game.viewer_file || '';
+  var downloadable = game.models_downloadable !== false;
+
+  var entries = modelFiles.map(function(mf, i) {
+    var isViewer = mf.file === viewerFile;
+    return '<div class="download-entry">' +
+      '<span class="file-name">' + esc(mf.filename || mf.file) + '</span>' +
+      '<span class="file-size-label">' + esc(mf.size || '') + '</span>' +
+      (isViewer ? '<span style="color:var(--accent-green);font-size:0.75rem;" title="Used in 3D viewer">&#x1f441;</span>' : '') +
+      '<button class="remove-row" onclick="removeModelFile(' + i + ')">&times;</button>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="editor-section"><h3>Model Files</h3>' +
+    '<div id="modelFilesList">' + entries + '</div>' +
+    '<div style="margin:8px 0;">' +
+      '<label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--text-dim);cursor:pointer;">' +
+        '<input type="checkbox"' + (downloadable ? ' checked' : '') + ' onchange="updateField(\'models_downloadable\', this.checked)">' +
+        'Allow model downloads on generated page' +
+      '</label>' +
+    '</div>' +
+    '<div class="upload-zone" id="modelUpload" onclick="document.getElementById(\'modelFileInput\').click()"' +
+    ' ondragover="event.preventDefault();this.classList.add(\'dragover\')"' +
+    ' ondragleave="this.classList.remove(\'dragover\')"' +
+    ' ondrop="handleModelDrop(event)">' +
+      '<strong>Upload model files</strong><br>' +
+      '<span style="font-size:0.75rem;color:var(--text-muted);">Drop .stl, .obj, .3mf, .step, .ply, .gltf, .glb files here, or click to browse.</span>' +
+      '<input type="file" id="modelFileInput" accept=".stl,.obj,.3mf,.step,.stp,.ply,.gltf,.glb" multiple onchange="uploadModelFiles(this.files)">' +
+    '</div>' +
+  '</div>';
+}
+
+async function uploadModelFiles(files) {
+  if (!currentGame) return;
+  for (var i = 0; i < files.length; i++) {
+    var fd = new FormData();
+    fd.append('file', files[i]);
+    fd.append('type', 'model');
+    await fetch('/api/games/' + currentGame.slug + '/upload', { method: 'POST', body: fd });
+  }
+  await reloadCurrentGame();
+}
+
+function handleModelDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  if (e.dataTransfer.files.length) uploadModelFiles(e.dataTransfer.files);
+}
+
+async function removeModelFile(index) {
+  if (!currentGame) return;
+  var modelFiles = (currentGame.model_files || []).slice();
+  var removed = modelFiles.splice(index, 1)[0];
+  var updates = { model_files: modelFiles };
+  // If we removed the viewer file, pick next .stl or clear
+  if (removed && removed.file === currentGame.viewer_file) {
+    var nextStl = modelFiles.find(function(mf) { return mf.file.toLowerCase().endsWith('.stl'); });
+    updates.viewer_file = nextStl ? nextStl.file : '';
+  }
+  await api('/games/' + currentGame.slug, 'PUT', updates);
+  // Delete file from disk
+  await fetch('/api/games/' + currentGame.slug + '/files', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file: removed.file })
+  });
+  await reloadCurrentGame();
+}
+
+async function reloadCurrentGame() {
+  var game = await api('/games/' + currentGame.slug);
+  currentGame = game;
+  renderEditor(currentGame);
+}
+
+// Form helpers
+function fg(label, content) {
+  return '<div class="form-group"><label>' + label + '</label>' + content + '</div>';
+}
+
+function selectHtml(field, current, options, customOnchange) {
+  var onchange = customOnchange || "updateField('" + field + "', this.value)";
+  var html = '<select class="form-select" onchange="' + onchange + '">';
+  options.forEach(function(opt) {
+    html += '<option value="' + opt[0] + '"' + (String(current) === opt[0] ? ' selected' : '') + '>' + opt[1] + '</option>';
+  });
+  return html + '</select>';
+}
+
+function renderScreenshots(game) {
+  var screenshots = game.screenshots || [];
+  var html = '';
+  for (var i = 0; i < 6; i++) {
+    if (i < screenshots.length) {
+      html += '<div class="screenshot-slot">' +
+        '<img src="/preview/games/' + game.slug + '/screenshots/' + screenshots[i] + '">' +
+        '<button class="remove-btn" onclick="event.stopPropagation();removeScreenshot(' + i + ')">&times;</button></div>';
+    } else {
+      html += '<div class="screenshot-slot" onclick="document.getElementById(\'ssInput' + i + '\').click()">+' +
+        '<input type="file" id="ssInput' + i + '" style="display:none" accept="image/*" onchange="uploadFile(this.files[0],\'screenshot\')"></div>';
+    }
+  }
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
+//  BUILD INFO (file list + engine detection)
+// ═══════════════════════════════════════════════════════
+
+async function loadBuildInfo(slug) {
+  // Engine detection
+  var detection = await api('/detect-engine/' + slug);
+  var detectEl = document.getElementById('engineDetectInfo');
+  if (detectEl) {
+    if (detection.detected) {
+      var engineName = detection.engine === 'godot' ? 'Godot' : 'Unity';
+      var cls = 'detected';
+      var icon = '\u2705';
+      var msg = engineName + ' detected';
+      if (detection.game_file) msg += ' \u2014 entry point: ' + detection.game_file;
+
+      if (detection.engine === 'unity') {
+        msg += '<br><span style="color:var(--accent-secondary);font-size:0.75rem;">\u26a0\ufe0f Unity builds may need the HTML edited for fullscreen (100vw/100vh)</span>';
+        cls = 'warning';
+        icon = '\u26a0\ufe0f';
+      }
+
+      detectEl.innerHTML = '<div class="engine-detect ' + cls + '">' +
+        '<span class="engine-detect-icon">' + icon + '</span><span>' + msg + '</span></div>';
+
+      // Auto-populate fields if empty
+      if (!currentGame.engine && detection.engine) {
+        currentGame.engine = detection.engine === 'godot' ? 'Godot' : 'Unity';
+        var ef = document.getElementById('engineField');
+        if (ef) ef.value = currentGame.engine;
+      }
+      if (!currentGame.game_file && detection.game_file) {
+        currentGame.game_file = detection.game_file;
+        var gf = document.getElementById('gameFileField');
+        if (gf) gf.value = currentGame.game_file;
+        scheduleSave();
+      }
+    } else {
+      detectEl.innerHTML = '<div class="engine-detect none">' +
+        '<span class="engine-detect-icon">\u2014</span>' +
+        '<span>No engine detected. Upload a Godot (.pck + .wasm + .html) or Unity (Build/ folder) web export as a .zip.</span></div>';
+    }
+  }
+
+  // File list
+  var files = await api('/games/' + slug + '/files');
+  var listEl = document.getElementById('buildFileList');
+  if (listEl && files && files.length > 0) {
+    listEl.innerHTML = '<div class="file-list">' +
+      files.map(function(f) {
+        return '<div class="file-item"><span>' + esc(f.name) + '</span><span class="file-size">' + formatSize(f.size) +
+          '</span><button class="file-delete-btn" data-file="' + esc(f.name) + '" title="Delete file">&times;</button></div>';
+      }).join('') +
+    '</div>';
+    listEl.querySelectorAll('.file-delete-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { deleteBuildFile(this.dataset.file); });
+    });
+  } else if (listEl) {
+    listEl.innerHTML = '';
+  }
+}
+
+async function deleteBuildFile(filename) {
+  if (!currentGame) return;
+  if (!confirm('Delete ' + filename + '?')) return;
+  var res = await fetch('/api/games/' + currentGame.slug + '/files', {
+    method: 'DELETE',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({file: filename})
+  });
+  if (res.ok) {
+    // If deleted file was the game_file, clear engine detection display
+    if (currentGame.game_file === filename) {
+      currentGame.game_file = '';
+      var gf = document.getElementById('gameFileField');
+      if (gf) gf.value = '';
+      var detectEl = document.getElementById('engineDetectInfo');
+      if (detectEl) detectEl.innerHTML = '';
+    }
+    loadBuildInfo(currentGame.slug);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  FIELD UPDATES (auto-save with debounce)
+// ═══════════════════════════════════════════════════════
+
+function updateField(field, value) {
+  if (!currentGame) return;
+  currentGame[field] = value;
+  if (field === 'title') {
+    document.getElementById('editorTitle').textContent = value;
+  }
+  markDirty();
+  scheduleSave();
+}
+
+function scheduleSave() {
+  var indicator = document.getElementById('saveIndicator');
+  indicator.textContent = 'unsaved...';
+  indicator.className = 'save-indicator saving';
+
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(function() { doSave(); }, 1000);
+}
+
+async function doSave() {
+  if (!currentGame) return;
+  if (saveTimeout) { clearTimeout(saveTimeout); saveTimeout = null; }
+  var indicator = document.getElementById('saveIndicator');
+  var data = Object.assign({}, currentGame);
+  delete data.slug;
+  await api('/games/' + currentGame.slug, { method: 'PUT', body: JSON.stringify(data) });
+  indicator.textContent = 'saved';
+  indicator.className = 'save-indicator saved';
+  setTimeout(function() { indicator.textContent = ''; }, 2000);
+}
+
+async function flushSave() {
+  if (saveTimeout) await doSave();
+}
+
+// Dynamic list helpers
+function updateControl(i, field, val) {
+  currentGame.controls = currentGame.controls || [];
+  currentGame.controls[i][field] = val;
+  scheduleSave();
+}
+
+function addControl() {
+  currentGame.controls = currentGame.controls || [];
+  currentGame.controls.push({ key: '', action: '' });
+  renderEditor(currentGame);
+  scheduleSave();
+}
+
+function removeControl(i) {
+  currentGame.controls.splice(i, 1);
+  renderEditor(currentGame);
+  scheduleSave();
+}
+
+function updateCredit(i, field, val) {
+  currentGame.credits = currentGame.credits || [];
+  currentGame.credits[i][field] = val;
+  scheduleSave();
+}
+
+function addCredit() {
+  currentGame.credits = currentGame.credits || [];
+  currentGame.credits.push({ role: '', name: '', url: '' });
+  renderEditor(currentGame);
+  scheduleSave();
+}
+
+function removeCredit(i) {
+  currentGame.credits.splice(i, 1);
+  renderEditor(currentGame);
+  scheduleSave();
+}
+
+function updateLink(i, field, val) {
+  currentGame.links = currentGame.links || [];
+  currentGame.links[i][field] = val;
+  scheduleSave();
+}
+
+function addLink() {
+  currentGame.links = currentGame.links || [];
+  currentGame.links.push({ label: '', url: '' });
+  renderEditor(currentGame);
+  scheduleSave();
+}
+
+function removeLink(i) {
+  currentGame.links.splice(i, 1);
+  renderEditor(currentGame);
+  scheduleSave();
+}
+
+function removeScreenshot(i) {
+  currentGame.screenshots.splice(i, 1);
+  renderEditor(currentGame);
+  scheduleSave();
+}
+
+function removeDownload(i) {
+  currentGame.downloads = currentGame.downloads || [];
+  currentGame.downloads.splice(i, 1);
+  renderEditor(currentGame);
+  scheduleSave();
+}
+
+function addDownloadUrl() {
+  var platform = document.getElementById('dlPlatform').value;
+  var url = (document.getElementById('dlUrl').value || '').trim();
+  var size = (document.getElementById('dlSize').value || '').trim();
+  if (!url) { toast('Enter a URL', 'error'); return; }
+  currentGame.downloads = currentGame.downloads || [];
+  currentGame.downloads.push({ platform: platform, url: url, file: '', size: size || 'External' });
+  renderEditor(currentGame);
+  scheduleSave();
+  toast('Download link added: ' + platform, 'success');
+}
+
+// ═══════════════════════════════════════════════════════
+//  FILE UPLOADS
+// ═══════════════════════════════════════════════════════
+
+async function uploadFile(file, type) {
+  if (!file || !currentGame) return;
+  var formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', type);
+
+  toast('Uploading ' + file.name + '...', '');
+
+  var res = await fetch('/api/games/' + currentGame.slug + '/upload', {
+    method: 'POST', body: formData,
+  });
+  var result = await res.json();
+
+  if (result.error) { toast(result.error, 'error'); return; }
+
+  toast('Uploaded: ' + result.filename, 'success');
+  // Refresh game data and re-render
+  currentGame = await api('/games/' + currentGame.slug);
+  renderEditor(currentGame);
+}
+
+async function updateGameFile(val) {
+  updateField('game_file', val);
+  var status = document.getElementById('gameFileStatus');
+  if (!status || !currentGame) return;
+  if (!val) { status.textContent = ''; return; }
+  // Check if file exists in game folder
+  var files = await api('/games/' + currentGame.slug + '/files');
+  var exists = (files || []).some(function(f) { return f === val || f.endsWith('/' + val); });
+  if (exists) {
+    status.textContent = 'File found';
+    status.style.color = 'var(--accent-green)';
+  } else {
+    status.textContent = 'File not found in game folder';
+    status.style.color = 'var(--accent)';
+  }
+}
+
+async function uploadBuildFiles(files) {
+  if (!files || !files.length || !currentGame) return;
+  var zone = document.getElementById('buildUpload');
+  zone.classList.add('uploading');
+  zone.textContent = 'Uploading...';
+
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'build');
+
+    toast('Uploading ' + file.name + '...', '');
+
+    var res = await fetch('/api/games/' + currentGame.slug + '/upload', {
+      method: 'POST', body: formData,
+    });
+    var result = await res.json();
+
+    if (result.error) {
+      toast(result.error, 'error');
+    } else if (result.extracted) {
+      toast('Extracted ' + result.extracted.length + ' files', 'success');
+      if (result.detection && result.detection.detected) {
+        var eng = result.detection.engine === 'godot' ? 'Godot' : 'Unity';
+        toast(eng + ' detected! Game file: ' + (result.detection.game_file || 'none'), 'success');
+      }
+    } else {
+      toast('Uploaded: ' + result.filename, 'success');
+    }
+  }
+
+  // Refresh
+  currentGame = await api('/games/' + currentGame.slug);
+  renderEditor(currentGame);
+}
+
+function handleBuildDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  uploadBuildFiles(e.dataTransfer.files);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PLAYER MODE (Autodetect / EmulatorJS / Manual)
+// ═══════════════════════════════════════════════════════
+
+function setPlayerMode(mode) {
+  if (!currentGame) return;
+  if (mode === 'emulator') {
+    // Set a default core if none selected
+    if (!currentGame.emulator_core) {
+      currentGame.emulator_core = 'genesis';
+      updateField('emulator_core', 'genesis');
+    }
+  } else {
+    // Clear emulator_core when leaving EmulatorJS mode
+    if (currentGame.emulator_core) {
+      currentGame.emulator_core = '';
+      updateField('emulator_core', '');
+    }
+  }
+  renderEditor(currentGame);
+  if (mode === 'autodetect') loadBuildInfo(currentGame.slug);
+}
+
+function setEmulatorCore(core) {
+  if (!currentGame) return;
+  currentGame.emulator_core = core;
+  updateField('emulator_core', core);
+}
+
+async function uploadRomFile(file) {
+  if (!file || !currentGame) return;
+  var formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', 'rom');
+
+  toast('Uploading ' + file.name + '...', '');
+
+  var res = await fetch('/api/games/' + currentGame.slug + '/upload', {
+    method: 'POST', body: formData,
+  });
+  var result = await res.json();
+
+  if (result.error) { toast(result.error, 'error'); return; }
+
+  toast('ROM uploaded: ' + result.filename, 'success');
+  currentGame = await api('/games/' + currentGame.slug);
+  renderEditor(currentGame);
+}
+
+function handleRomDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  if (e.dataTransfer.files.length) uploadRomFile(e.dataTransfer.files[0]);
+}
+
+async function uploadDownload(file) {
+  if (!file || !currentGame) return;
+  var platform = document.getElementById('dlPlatform').value;
+  var formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', 'download');
+  formData.append('platform', platform);
+
+  toast('Uploading ' + file.name + '...', '');
+
+  var res = await fetch('/api/games/' + currentGame.slug + '/upload', {
+    method: 'POST', body: formData,
+  });
+  var result = await res.json();
+
+  if (result.error) { toast(result.error, 'error'); return; }
+
+  toast('Download added: ' + platform + ' (' + result.size + ')', 'success');
+  currentGame = await api('/games/' + currentGame.slug);
+  renderEditor(currentGame);
+}
+
+// ═══════════════════════════════════════════════════════
+//  GENERATE & DELETE
+// ═══════════════════════════════════════════════════════
+
+async function generateAll() {
+  await flushSave();
+  toast('Generating...', '');
+  var result = await api('/generate', { method: 'POST' });
+  if (result.error) { toast(result.error, 'error'); }
+  else { toast('Generated ' + result.count + ' files', 'success'); }
+}
+
+async function generateCurrent() {
+  if (!currentGame) return;
+  await flushSave();
+  var updateDate = document.getElementById('updateDateCheck').checked;
+  var result = await api('/generate/' + currentGame.slug, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ update_date: updateDate })
+  });
+  if (result.error) { toast(result.error, 'error'); }
+  else {
+    var wasNew = !pageExists;
+    gameDirty = false;
+    pageExists = true;
+    setDirtyBanner(false);
+    if (updateDate) currentGame.date_updated = new Date().toISOString().slice(0, 10);
+    toast(wasNew ? 'Page generated!' : 'Page regenerated!', 'success');
+  }
+}
+
+async function previewCurrent() {
+  if (!currentGame) return;
+  await flushSave();
+  toast('Generating page...', '');
+  var updateDate = document.getElementById('updateDateCheck').checked;
+  await api('/generate/' + currentGame.slug, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ update_date: updateDate })
+  });
+  if (updateDate) currentGame.date_updated = new Date().toISOString().slice(0, 10);
+  window.open('/preview/games/' + currentGame.slug + '/', '_blank');
+}
+
+async function deleteGame(slug, title) {
+  if (!confirm('Delete "' + (title || slug) + '"? This will remove it from games.json and delete all files from disk (builds, screenshots, etc). This cannot be undone.')) return;
+  await api('/games/' + slug, { method: 'DELETE' });
+  toast('Game deleted', 'success');
+  loadGameList();
+}
+
+async function deleteCurrent() {
+  if (!currentGame) return;
+  await deleteGame(currentGame.slug, currentGame.title);
+  currentGame = null;
+  showView('games');
+}
+
+// ═══════════════════════════════════════════════════════
+//  SITE SETTINGS (with live preview)
+// ═══════════════════════════════════════════════════════
+
+async function loadSettings() {
+  var config = await api('/site');
+  if (!config || config.exists === false) return;
+  siteConfig = config;
+
+  renderSettingsPreview(config);
+  renderSettingsForm(config);
+}
+
+function renderSettingsPreview(c) {
+  // Build highlight title
+  var title = c.site_title || c.site_name || '';
+  var name = c.site_name || '';
+  var titleHtml;
+  if (name && title.toLowerCase().indexOf(name.toLowerCase()) !== -1) {
+    var idx = title.toLowerCase().indexOf(name.toLowerCase());
+    titleHtml = esc(title.substring(0, idx)) +
+      '<span class="highlight">' + esc(title.substring(idx, idx + name.length)) + '</span>' +
+      esc(title.substring(idx + name.length));
+  } else {
+    titleHtml = '<span class="highlight">' + esc(title) + '</span>';
+  }
+
+  var navHtml = (c.nav_links || []).map(function(l) {
+    return '<span' + (l.active ? ' class="active"' : '') + '>' + esc(l.label) + '</span>';
+  }).join('');
+
+  var footerLinksHtml = (c.footer_links || []).map(function(l) {
+    return '<span>' + esc(l.label) + '</span>';
+  }).join('');
+
+  document.getElementById('settingsPreview').innerHTML =
+    '<div class="settings-preview">' +
+      '<div class="preview-topbar">' +
+        '<div class="preview-logo">' + (c.site_logo_image ? '<img src="/preview/' + esc(c.site_logo_image) + '?v=' + (c._logo_cache_bust || '') + '" style="height:24px;">' : esc(c.site_name || '')) + '</div>' +
+        '<div class="preview-nav">' + navHtml + '</div>' +
+      '</div>' +
+      '<div class="preview-hero">' +
+        (c.site_badge ? '<div class="preview-badge">' + esc(c.site_badge) + '</div>' : '') +
+        '<h2>' + titleHtml + '</h2>' +
+        '<p>' + esc(c.site_tagline || '') + '</p>' +
+      '</div>' +
+      '<div class="preview-footer">' +
+        '<span>' + esc(c.footer_text || '') + '</span>' +
+        '<div class="preview-footer-links">' + footerLinksHtml + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderSettingsForm(config) {
+  // Left column: Identity, Badge, Support
+  document.getElementById('settingsFormLeft').innerHTML =
+    '<div class="editor-section"><h3>Identity</h3>' +
+      fg('Site Name', '<input class="form-input" id="s_site_name" value="' + esc(config.site_name) + '" oninput="updateSettingsPreview()">') +
+      fg('Site Title', '<input class="form-input" id="s_site_title" value="' + esc(config.site_title) + '" oninput="updateSettingsPreview()">') +
+      fg('Tagline', '<input class="form-input" id="s_site_tagline" value="' + esc(config.site_tagline) + '" oninput="updateSettingsPreview()">') +
+      '<div class="form-row">' +
+        fg('Author', '<input class="form-input" id="s_site_author" value="' + esc(config.site_author) + '">') +
+        fg('Site URL', '<input class="form-input" id="s_site_url" value="' + esc(config.site_url) + '" placeholder="https://games.example.com">' +
+          (!config.site_url ? '<small style="color:var(--accent);margin-top:4px;display:block;">Required for social media link previews (Discord, Twitter, etc.) and RSS feed.</small>' : '<small style="color:var(--text-muted);margin-top:4px;display:block;">Enables social media previews and RSS feed at ' + esc(config.site_url) + '/rss.xml</small>')) +
+      '</div>' +
+      fg('Badge', '<input class="form-input" id="s_site_badge" value="' + esc(((config.site_badge_emoji || '') + ' ' + (config.site_badge || '')).trim()) + '" oninput="updateSettingsPreview()" placeholder="e.g. 🕹️ Self-hosted indie corner">') +
+    '</div>' +
+
+    '<div class="editor-section"><h3>Portal Options</h3>' +
+      '<label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-dim);cursor:pointer;">' +
+        '<input type="checkbox" id="s_show_browse_panel"' + (config.show_browse_panel ? ' checked' : '') + '>' +
+        'Show tag/genre browse panel' +
+      '</label>' +
+      '<small style="color:var(--text-muted);margin-top:6px;display:block;">Adds a sidebar on the portal page for browsing by tag and genre.</small>' +
+    '</div>' +
+
+    '<div class="editor-section"><h3>Support the Creator</h3>' +
+      '<p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:12px;">Add payment/donation links that appear on every page. Provider name + URL, no APIs needed.</p>' +
+      '<div id="supportLinksEditor">' +
+        (config.support_links || []).map(function(l) {
+          return '<div class="nav-link-row">' +
+            '<input class="form-input" value="' + esc(l.provider) + '" placeholder="Provider (Ko-fi, PayPal, etc.)">' +
+            '<input class="form-input" value="' + esc(l.url) + '" placeholder="https://ko-fi.com/username">' +
+            '<button class="remove-row" onclick="this.parentElement.remove()">&times;</button></div>';
+        }).join('') +
+      '</div>' +
+      '<button class="add-row-btn" onclick="addSupportLink()">+ Add Link</button>' +
+    '</div>' +
+
+    '<div class="editor-section"><h3>Social Links</h3>' +
+      '<p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:12px;">Add social profile icons. Shown in the browse sidebar, or next to support links if the sidebar is off.</p>' +
+      fg('Section Heading', '<input class="form-input" id="s_social_heading" value="' + esc(config.social_heading || 'Socials') + '" placeholder="Socials, Follow, Contact, etc.">') +
+      '<div id="socialLinksEditor">' +
+        (config.social_links || []).map(function(l) {
+          return '<div class="nav-link-row">' +
+            '<select class="form-input" style="width:140px;flex-shrink:0;">' + socialPlatformOptions(l.platform) + '</select>' +
+            '<input class="form-input" value="' + esc(l.url) + '" placeholder="https://...">' +
+            '<button class="remove-row" onclick="this.parentElement.remove()">&times;</button></div>';
+        }).join('') +
+      '</div>' +
+      '<button class="add-row-btn" onclick="addSocialLink()">+ Add Link</button>' +
+      '<small style="color:var(--text-muted);margin-top:6px;display:block;">Max 15 icons rendered (5 per row, 3 rows).</small>' +
+    '</div>';
+
+  // Right column: Theming, Navigation, Footer
+  document.getElementById('settingsFormRight').innerHTML =
+    '<div class="editor-section"><h3>Theming</h3>' +
+      fg('Theme', '<select class="form-input" id="s_theme" onchange="updateSettingsPreview()">' +
+        '<option value="default"' + (config.theme === 'default' || !config.theme ? ' selected' : '') + '>Default (Dark)</option>' +
+        '<option value="lighter"' + (config.theme === 'lighter' ? ' selected' : '') + '>Default (Lighter)</option>' +
+        '<option value="usnes"' + (config.theme === 'usnes' ? ' selected' : '') + '>Super Intendo</option>' +
+        '<option value="modernintendo"' + (config.theme === 'modernintendo' ? ' selected' : '') + '>Modern Intendo</option>' +
+        '<option value="megadriveblue"' + (config.theme === 'genesisblue' ? ' selected' : '') + '>Sega Mega Drive</option>' +
+        '<option value="genesisred"' + (config.theme === 'genesisred' ? ' selected' : '') + '>Sega Genesis</option>' +
+        '<option value="playstationish"' + (config.theme === 'playstationish' ? ' selected' : '') + '>Stated Play</option>' +
+        '<option value="ogxb"' + (config.theme === 'ogxb' ? ' selected' : '') + '>OGX</option>' +
+        '<option value="win98"' + (config.theme === 'win98' ? ' selected' : '') + '>Windows 98</option>' +
+      '</select>') +
+      fg('Logo Image', '<div id="logoUploadArea">' +
+        (config.site_logo_image
+          ? '<div style="display:flex;align-items:center;gap:12px;"><img src="/preview/' + esc(config.site_logo_image) + '?v=' + (config._logo_cache_bust || '') + '" style="height:32px;background:var(--bg);padding:4px;border-radius:4px;border:1px solid var(--border);">' +
+            '<span style="color:var(--text-dim);font-size:0.82rem;">' + esc(config.site_logo_image) + '</span>' +
+            '<button class="btn btn-secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="removeSiteLogo()">Remove</button></div>'
+          : '<small style="color:var(--text-dim);margin-bottom:8px;display:block;">Optional image to replace the text logo in the topbar.</small>') +
+        '<input type="file" id="logoFileInput" accept="image/*" onchange="uploadSiteLogo(this)" style="margin-top:6px;">' +
+      '</div>') +
+      fg('Background', '<select class="form-input" id="s_bg_pattern" onchange="onBgPatternChange()">' +
+        '<option value="squares"' + ((config.bg_pattern || 'squares') === 'squares' ? ' selected' : '') + '>Squares</option>' +
+        '<option value="hex"' + (config.bg_pattern === 'hex' ? ' selected' : '') + '>Steptagons</option>' +
+        '<option value="image"' + (config.bg_pattern === 'image' ? ' selected' : '') + '>Image</option>' +
+        '<option value="none"' + (config.bg_pattern === 'none' ? ' selected' : '') + '>None</option>' +
+      '</select>') +
+      '<div id="bgImageOptions" style="' + (config.bg_pattern === 'image' ? '' : 'display:none;') + '">' +
+        fg('Image Mode', '<select class="form-input" id="s_bg_image_mode" onchange="updateBgPreview()">' +
+          '<option value="fill"' + ((config.bg_image_mode || 'fill') === 'fill' ? ' selected' : '') + '>Fill (cover)</option>' +
+          '<option value="stretch"' + (config.bg_image_mode === 'stretch' ? ' selected' : '') + '>Stretch</option>' +
+          '<option value="tile"' + (config.bg_image_mode === 'tile' ? ' selected' : '') + '>Tile (repeat)</option>' +
+        '</select>') +
+        '<div id="bgUploadArea">' +
+          (config.bg_image
+            ? '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">' +
+                '<img src="/preview/' + esc(config.bg_image) + '?v=' + (config._bg_cache_bust || '') + '" style="height:40px;width:60px;object-fit:cover;border-radius:4px;border:1px solid var(--border);">' +
+                '<span style="color:var(--text-dim);font-size:0.82rem;">' + esc(config.bg_image) + '</span>' +
+                '<button class="btn btn-secondary" style="padding:4px 10px;font-size:0.75rem;" onclick="removeBgImage()">Remove</button></div>'
+            : '') +
+          '<input type="file" id="bgFileInput" accept="image/*" onchange="uploadBgImage(this)">' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="editor-section"><h3>Navigation Links</h3>' +
+      '<div id="navLinksEditor">' +
+        (config.nav_links || []).map(function(l) {
+          return '<div class="nav-link-row">' +
+            '<input class="form-input" value="' + esc(l.label) + '" placeholder="Label" oninput="updateSettingsPreview()">' +
+            '<input class="form-input" value="' + esc(l.url) + '" placeholder="https://..." oninput="updateSettingsPreview()">' +
+            '<label><input type="checkbox" ' + (l.active ? 'checked' : '') + ' oninput="updateSettingsPreview()"> Active</label>' +
+            '<button class="remove-row" onclick="this.parentElement.remove();updateSettingsPreview()">&times;</button></div>';
+        }).join('') +
+      '</div>' +
+      '<button class="add-row-btn" onclick="addNavLink()">+ Add Link</button>' +
+    '</div>' +
+
+    '<div class="editor-section"><h3>Footer</h3>' +
+      fg('Footer Text', '<input class="form-input" id="s_footer_text" value="' + esc(config.footer_text) + '" oninput="updateSettingsPreview()">') +
+      '<div id="footerLinksEditor">' +
+        (config.footer_links || []).map(function(l) {
+          return '<div class="nav-link-row">' +
+            '<input class="form-input" value="' + esc(l.label) + '" placeholder="Label" oninput="updateSettingsPreview()">' +
+            '<input class="form-input" value="' + esc(l.url) + '" placeholder="https://..." oninput="updateSettingsPreview()">' +
+            '<button class="remove-row" onclick="this.parentElement.remove();updateSettingsPreview()">&times;</button></div>';
+        }).join('') +
+      '</div>' +
+      '<button class="add-row-btn" onclick="addFooterLink()">+ Add Link</button>' +
+    '</div>';
+}
+
+function updateSettingsPreview() {
+  var config = gatherSettingsConfig();
+  renderSettingsPreview(config);
+  applyAdminTheme(config.theme);
+}
+
+function gatherSettingsConfig() {
+  var config = {
+    site_name: (document.getElementById('s_site_name') || {}).value || '',
+    site_title: (document.getElementById('s_site_title') || {}).value || '',
+    site_tagline: (document.getElementById('s_site_tagline') || {}).value || '',
+    site_url: (document.getElementById('s_site_url') || {}).value || '',
+    site_author: (document.getElementById('s_site_author') || {}).value || '',
+    site_badge: (document.getElementById('s_site_badge') || {}).value || '',
+    site_badge_emoji: '',
+    footer_text: (document.getElementById('s_footer_text') || {}).value || '',
+    theme: (document.getElementById('s_theme') || {}).value || 'default',
+    nav_links: [],
+    footer_links: [],
+    support_links: [],
+    social_links: [],
+    social_heading: (document.getElementById('s_social_heading') || {}).value || 'Socials',
+    site_logo_image: siteConfig ? siteConfig.site_logo_image || '' : '',
+    bg_pattern: (document.getElementById('s_bg_pattern') || {}).value || 'squares',
+    bg_image_mode: (document.getElementById('s_bg_image_mode') || {}).value || 'fill',
+    bg_image: siteConfig ? siteConfig.bg_image || '' : '',
+    show_browse_panel: (document.getElementById('s_show_browse_panel') || {}).checked || false,
+    _logo_cache_bust: siteConfig ? siteConfig._logo_cache_bust || '' : '',
+    _bg_cache_bust: siteConfig ? siteConfig._bg_cache_bust || '' : '',
+  };
+
+  document.querySelectorAll('#navLinksEditor .nav-link-row').forEach(function(row) {
+    var inputs = row.querySelectorAll('input');
+    var label = inputs[0] ? inputs[0].value : '';
+    var url = inputs[1] ? inputs[1].value : '';
+    var active = inputs[2] ? inputs[2].checked : false;
+    if (label || url) config.nav_links.push({ label: label, url: url, active: active });
+  });
+
+  document.querySelectorAll('#footerLinksEditor .nav-link-row').forEach(function(row) {
+    var inputs = row.querySelectorAll('input');
+    var label = inputs[0] ? inputs[0].value : '';
+    var url = inputs[1] ? inputs[1].value : '';
+    if (label || url) config.footer_links.push({ label: label, url: url });
+  });
+
+  document.querySelectorAll('#supportLinksEditor .nav-link-row').forEach(function(row) {
+    var inputs = row.querySelectorAll('input');
+    var provider = inputs[0] ? inputs[0].value : '';
+    var url = inputs[1] ? inputs[1].value : '';
+    if (provider || url) config.support_links.push({ provider: provider, url: url });
+  });
+
+  document.querySelectorAll('#socialLinksEditor .nav-link-row').forEach(function(row) {
+    var select = row.querySelector('select');
+    var input = row.querySelector('input[type="text"], input:not([type])');
+    var platform = select ? select.value : '';
+    var url = input ? input.value : '';
+    if (platform && url) config.social_links.push({ platform: platform, url: url });
+  });
+
+  return config;
+}
+
+function addNavLink() {
+  var editor = document.getElementById('navLinksEditor');
+  var div = document.createElement('div');
+  div.className = 'nav-link-row';
+  div.innerHTML = '<input class="form-input" value="" placeholder="Label" oninput="updateSettingsPreview()">' +
+    '<input class="form-input" value="" placeholder="https://..." oninput="updateSettingsPreview()">' +
+    '<label><input type="checkbox" oninput="updateSettingsPreview()"> Active</label>' +
+    '<button class="remove-row" onclick="this.parentElement.remove();updateSettingsPreview()">&times;</button>';
+  editor.appendChild(div);
+  updateSettingsPreview();
+}
+
+function addFooterLink() {
+  var editor = document.getElementById('footerLinksEditor');
+  var div = document.createElement('div');
+  div.className = 'nav-link-row';
+  div.innerHTML = '<input class="form-input" value="" placeholder="Label" oninput="updateSettingsPreview()">' +
+    '<input class="form-input" value="" placeholder="https://..." oninput="updateSettingsPreview()">' +
+    '<button class="remove-row" onclick="this.parentElement.remove();updateSettingsPreview()">&times;</button>';
+  editor.appendChild(div);
+  updateSettingsPreview();
+}
+
+async function uploadSiteLogo(input) {
+  if (!input.files || !input.files[0]) return;
+  var fd = new FormData();
+  fd.append('file', input.files[0]);
+  var res = await fetch('/api/site/upload-logo', { method: 'POST', body: fd });
+  var data = await res.json();
+  if (data.ok) {
+    siteConfig = gatherSettingsConfig();
+    siteConfig.site_logo_image = data.filename;
+    siteConfig._logo_cache_bust = Date.now();
+    toast('Logo uploaded!', 'success');
+    renderSettingsForm(siteConfig);
+    renderSettingsPreview(siteConfig);
+    updateAdminLogo();
+  } else {
+    toast(data.error || 'Upload failed', 'error');
+  }
+}
+
+async function removeSiteLogo() {
+  var res = await fetch('/api/site/delete-logo', { method: 'POST' });
+  var data = await res.json();
+  if (data.ok) {
+    siteConfig = gatherSettingsConfig();
+    siteConfig.site_logo_image = '';
+    toast('Logo removed', 'success');
+    renderSettingsForm(siteConfig);
+    renderSettingsPreview(siteConfig);
+    updateAdminLogo();
+  }
+}
+
+function onBgPatternChange() {
+  var val = document.getElementById('s_bg_pattern').value;
+  var opts = document.getElementById('bgImageOptions');
+  if (opts) opts.style.display = val === 'image' ? '' : 'none';
+  updateBgPreview();
+}
+
+function updateBgPreview() {
+  var patternEl = document.getElementById('s_bg_pattern');
+  var pattern = patternEl ? patternEl.value : (siteConfig && siteConfig.bg_pattern || 'squares');
+  var el = document.querySelector('.bg-pattern');
+  if (!el) return;
+  el.setAttribute('data-pattern', pattern);
+  if (pattern === 'image' && siteConfig && siteConfig.bg_image) {
+    var modeEl = document.getElementById('s_bg_image_mode');
+    var mode = modeEl ? modeEl.value : (siteConfig && siteConfig.bg_image_mode || 'fill');
+    el.setAttribute('data-mode', mode);
+    el.style.backgroundImage = "url('/preview/" + siteConfig.bg_image + "?v=" + (siteConfig._bg_cache_bust || '') + "')";
+  } else {
+    el.removeAttribute('data-mode');
+    el.style.backgroundImage = '';
+  }
+}
+
+async function uploadBgImage(input) {
+  if (!input.files || !input.files[0]) return;
+  var fd = new FormData();
+  fd.append('file', input.files[0]);
+  var res = await fetch('/api/site/upload-bg', { method: 'POST', body: fd });
+  var data = await res.json();
+  if (data.ok) {
+    siteConfig = gatherSettingsConfig();
+    siteConfig.bg_image = data.filename;
+    siteConfig._bg_cache_bust = Date.now();
+    toast('Background uploaded!', 'success');
+    renderSettingsForm(siteConfig);
+    renderSettingsPreview(siteConfig);
+    updateBgPreview();
+  } else {
+    toast(data.error || 'Upload failed', 'error');
+  }
+}
+
+async function removeBgImage() {
+  var res = await fetch('/api/site/delete-bg', { method: 'POST' });
+  var data = await res.json();
+  if (data.ok) {
+    siteConfig = gatherSettingsConfig();
+    siteConfig.bg_image = '';
+    toast('Background removed', 'success');
+    renderSettingsForm(siteConfig);
+    renderSettingsPreview(siteConfig);
+    updateBgPreview();
+  }
+}
+
+function addSupportLink() {
+  var editor = document.getElementById('supportLinksEditor');
+  var div = document.createElement('div');
+  div.className = 'nav-link-row';
+  div.innerHTML = '<input class="form-input" value="" placeholder="Provider (Ko-fi, PayPal, etc.)">' +
+    '<input class="form-input" value="" placeholder="https://ko-fi.com/username">' +
+    '<button class="remove-row" onclick="this.parentElement.remove()">&times;</button>';
+  editor.appendChild(div);
+}
+
+var SOCIAL_PLATFORMS = [
+  ['twitter', 'Twitter / X'], ['bluesky', 'Bluesky'], ['mastodon', 'Mastodon'],
+  ['youtube', 'YouTube'], ['twitch', 'Twitch'], ['discord', 'Discord'],
+  ['github', 'GitHub'], ['gitlab', 'GitLab'], ['reddit', 'Reddit'],
+  ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['facebook', 'Facebook'],
+  ['linkedin', 'LinkedIn'], ['threads', 'Threads'], ['lemmy', 'Lemmy'],
+  ['pixelfed', 'Pixelfed'], ['peertube', 'PeerTube'], ['matrix', 'Matrix'],
+  ['steam', 'Steam'], ['itchio', 'itch.io'], ['website', 'Website'],
+  ['email', 'Email'], ['rss', 'RSS']
+];
+
+function socialPlatformOptions(selected) {
+  return SOCIAL_PLATFORMS.map(function(p) {
+    return '<option value="' + p[0] + '"' + (p[0] === selected ? ' selected' : '') + '>' + p[1] + '</option>';
+  }).join('');
+}
+
+function addSocialLink() {
+  var editor = document.getElementById('socialLinksEditor');
+  var div = document.createElement('div');
+  div.className = 'nav-link-row';
+  div.innerHTML = '<select class="form-input" style="width:140px;flex-shrink:0;">' + socialPlatformOptions('') + '</select>' +
+    '<input class="form-input" value="" placeholder="https://...">' +
+    '<button class="remove-row" onclick="this.parentElement.remove()">&times;</button>';
+  editor.appendChild(div);
+}
+
+async function saveSettings() {
+  var config = gatherSettingsConfig();
+  // Strip internal keys before saving
+  var toSave = Object.assign({}, config);
+  Object.keys(toSave).forEach(function(k) { if (k.charAt(0) === '_') delete toSave[k]; });
+  await api('/site', { method: 'PUT', body: JSON.stringify(toSave) });
+  siteConfig = config;
+  updateAdminLogo();
+  applyAdminTheme(config.theme);
+  toast('Settings saved!', 'success');
+  await generateAll();
+}
+
+// ═══════════════════════════════════════════════════════
+//  ITCH.IO IMPORT
+// ═══════════════════════════════════════════════════════
+
+var _itchScanResult = null;
+var _showImportTip = false;
+
+function playYtPreview(el) {
+  var url = el.getAttribute('data-yt-url');
+  if (!url) return;
+  var sep = url.indexOf('?') === -1 ? '?' : '&';
+  el.innerHTML = '<iframe src="' + url + sep + 'autoplay=1" style="width:100%;height:100%;border:none;" allowfullscreen></iframe>';
+  el.style.cursor = 'default';
+  el.onclick = null;
+}
+
+async function scanItch() {
+  var url = document.getElementById('itchUrl').value.trim();
+  if (!url) return;
+
+  var btn = document.getElementById('itchScanBtn');
+  var results = document.getElementById('importResults');
+  btn.disabled = true;
+  btn.textContent = 'Scanning...';
+  results.innerHTML = '';
+
+  // Detect if profile URL or single game
+  var isProfile = false;
+  try {
+    var parsed = new URL(url);
+    var host = parsed.hostname || '';
+    if (host.endsWith('.itch.io')) {
+      var pathParts = parsed.pathname.replace(/^\/|\/$/g, '').split('/').filter(Boolean);
+      isProfile = pathParts.length === 0;
+    } else if (host === 'itch.io' && parsed.pathname.includes('/profile/')) {
+      isProfile = true;
+    }
+  } catch(e) {
+    toast('Invalid URL', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Scan';
+    return;
+  }
+
+  try {
+    if (isProfile) {
+      var data = await api('/import/itch/profile', { method: 'POST', body: JSON.stringify({ url: url }) });
+      if (data.error) {
+        results.innerHTML = '<div class="import-error-msg">' + esc(data.error) + '</div>';
+      } else {
+        renderProfileResults(data.games);
+      }
+    } else {
+      var data = await api('/import/itch', { method: 'POST', body: JSON.stringify({ url: url }) });
+      if (data.error) {
+        results.innerHTML = '<div class="import-error-msg">' + esc(data.error) + '</div>';
+      } else {
+        _itchScanResult = data;
+        renderGamePreview(data.game, data.warnings);
+      }
+    }
+  } catch (e) {
+    results.innerHTML = '<div class="import-error-msg">Network error: ' + esc(e.message) + '</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Scan';
+}
+
+function renderGamePreview(game, warnings) {
+  var results = document.getElementById('importResults');
+  var coverUrl = game._cover_url || '';
+  var ssUrls = game._screenshot_urls || [];
+
+  var coverHtml = coverUrl
+    ? '<img class="import-preview-cover" src="' + esc(coverUrl) + '" alt="">'
+    : '<div class="import-preview-cover"></div>';
+
+  var ssHtml = ssUrls.length
+    ? '<div class="import-preview-screenshots">' + ssUrls.map(function(u) {
+        return '<img src="' + esc(u) + '" alt="">';
+      }).join('') + '</div>'
+    : '';
+
+  var ytHtml = '';
+  if (game.youtube_url) {
+    var ytId = '';
+    var ytMatch = game.youtube_url.match(/embed\/([^?&/]+)/);
+    if (ytMatch) ytId = ytMatch[1];
+    else { ytMatch = game.youtube_url.match(/[?&]v=([^&]+)/); if (ytMatch) ytId = ytMatch[1]; }
+    ytHtml = '<div style="margin-top:12px;">' +
+      '<div id="ytPreviewContainer" data-yt-url="' + esc(game.youtube_url) + '" style="position:relative;aspect-ratio:16/9;max-width:400px;border-radius:4px;overflow:hidden;border:1px solid var(--border);cursor:pointer;" onclick="playYtPreview(this)">' +
+        (ytId ? '<img src="https://img.youtube.com/vi/' + esc(ytId) + '/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;">' : '') +
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+          '<div style="width:48px;height:48px;background:rgba(255,0,0,0.85);border-radius:8px;display:flex;align-items:center;justify-content:center;">' +
+            '<svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  var tagsHtml = (game.tags || []).map(function(t) {
+    return '<span class="status-pill">' + esc(t) + '</span>';
+  }).join('');
+
+  var warningsHtml = warnings && warnings.length
+    ? '<div class="import-warnings">' + warnings.map(function(w) { return esc(w); }).join('<br>') + '</div>'
+    : '';
+
+  results.innerHTML =
+    '<div class="import-preview">' +
+      '<div class="import-preview-header">' +
+        coverHtml +
+        '<div class="import-preview-info">' +
+          '<h3>' + esc(game.title || game.slug) + '</h3>' +
+          '<p>' + esc(game.description || '') + '</p>' +
+          '<div class="import-preview-meta">' +
+            (game.status ? '<span class="status-pill ' + esc(game.status) + '">' + esc(game.status) + '</span>' : '') +
+            (game.genre ? '<span>' + esc(game.genre) + '</span>' : '') +
+            (game.made_with ? '<span>' + esc(game.made_with) + '</span>' : '') +
+            (ssUrls.length ? '<span style="color:var(--accent-green);">' + ssUrls.length + ' screenshots</span>' : '') +
+            (game.youtube_url ? '<span style="color:var(--accent-cool);">video</span>' : '') +
+            tagsHtml +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      ssHtml +
+      ytHtml +
+      warningsHtml +
+      '<div class="editor-section" style="margin-top:16px;">' +
+        '<h3>Edit before importing</h3>' +
+        '<div class="form-row">' +
+          fg('Title', '<input class="form-input" id="import_title" value="' + esc(game.title || '') + '">') +
+          fg('Slug', '<input class="form-input" id="import_slug" value="' + esc(game.slug || '') + '">') +
+        '</div>' +
+        fg('Description', '<textarea class="form-input" id="import_desc" rows="2">' + esc(game.description || '') + '</textarea>') +
+        fg('Long Description', '<textarea class="form-input" id="import_long_desc" rows="6" style="font-size:0.8rem;">' + esc(game.long_description || '') + '</textarea>' +
+          '<div class="form-hint">HTML from the itch.io page. Edit or clear as needed.</div>') +
+        '<div class="form-row">' +
+          fg('Author', '<input class="form-input" id="import_author" value="' + esc(game.author || '') + '">') +
+          fg('Genre', '<input class="form-input" id="import_genre" value="' + esc(game.genre || '') + '">') +
+        '</div>' +
+        '<div class="form-row">' +
+          fg('Status', '<select class="form-input form-select" id="import_status">' +
+            '<option value="released"' + (game.status === 'released' ? ' selected' : '') + '>Released</option>' +
+            '<option value="in-dev"' + (game.status === 'in-dev' ? ' selected' : '') + '>In Dev</option>' +
+            '<option value="prototype"' + (game.status === 'prototype' ? ' selected' : '') + '>Prototype</option>' +
+            '<option value="jam"' + (game.status === 'jam' ? ' selected' : '') + '>Game Jam</option>' +
+          '</select>') +
+          fg('Made With', '<input class="form-input" id="import_made_with" value="' + esc(game.made_with || '') + '">') +
+        '</div>' +
+        fg('Tags', '<input class="form-input" id="import_tags" value="' + esc((game.tags || []).join(', ')) + '">') +
+      '</div>' +
+      '<div class="import-actions">' +
+        '<button class="btn btn-primary" onclick="confirmItchImport()">Import Game</button>' +
+        '<button class="btn btn-secondary" onclick="document.getElementById(\'importResults\').innerHTML=\'\'">Cancel</button>' +
+      '</div>' +
+    '</div>';
+}
+
+async function confirmItchImport() {
+  if (!_itchScanResult) return;
+  var game = Object.assign({}, _itchScanResult.game);
+
+  // Apply edits
+  game.title = document.getElementById('import_title').value.trim() || game.title;
+  game.slug = document.getElementById('import_slug').value.trim() || game.slug;
+  game.description = document.getElementById('import_desc').value.trim();
+  game.long_description = document.getElementById('import_long_desc').value.trim();
+  game.author = document.getElementById('import_author').value.trim();
+  game.genre = document.getElementById('import_genre').value.trim();
+  game.status = document.getElementById('import_status').value;
+  game.made_with = document.getElementById('import_made_with').value.trim();
+  var tagsStr = document.getElementById('import_tags').value.trim();
+  game.tags = tagsStr ? tagsStr.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
+
+  var body = {
+    game: game,
+    icon_url: game._icon_url || '',
+    cover_url: game._cover_url || '',
+    screenshot_urls: game._screenshot_urls || [],
+  };
+
+  toast('Importing...', '');
+  var result = await api('/import/itch/confirm', { method: 'POST', body: JSON.stringify(body) });
+  if (result.error) {
+    toast(result.error, 'error');
+    return;
+  }
+
+  toast('Imported "' + (result.game.title || result.game.slug) + '"!', 'success');
+  _itchScanResult = null;
+  _showImportTip = true;
+  editGame(result.game.slug);
+}
+
+function renderProfileResults(games) {
+  var results = document.getElementById('importResults');
+  var html =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+      '<span style="color:var(--text-dim);font-size:0.85rem;">' + games.length + ' games found</span>' +
+      '<div style="display:flex;gap:8px;">' +
+        '<button class="btn btn-secondary" onclick="toggleAllImports(true)">Select All</button>' +
+        '<button class="btn btn-secondary" onclick="toggleAllImports(false)">Deselect All</button>' +
+        '<button class="btn btn-primary" id="bulkImportBtn" onclick="bulkItchImport()">Import Selected</button>' +
+      '</div>' +
+    '</div>' +
+    '<div id="importProgress" class="import-progress" style="display:none;"><div class="import-progress-bar" id="importProgressBar"></div></div>' +
+    '<div class="import-game-list" id="importGameList">' +
+    games.map(function(g, i) {
+      var thumbHtml = g.thumb_url
+        ? '<img class="import-game-thumb" src="' + esc(g.thumb_url) + '" alt="">'
+        : '<div class="import-game-thumb"></div>';
+      return '<div class="import-game-item" id="importItem' + i + '" data-url="' + esc(g.url) + '">' +
+        '<input type="checkbox" class="import-check" checked>' +
+        thumbHtml +
+        '<span class="import-game-title">' + esc(g.title) + '</span>' +
+        '<span class="import-game-status" id="importStatus' + i + '"></span>' +
+      '</div>';
+    }).join('') +
+    '</div>';
+  results.innerHTML = html;
+}
+
+function toggleAllImports(checked) {
+  document.querySelectorAll('.import-check').forEach(function(cb) { cb.checked = checked; });
+}
+
+async function bulkItchImport() {
+  var items = document.querySelectorAll('#importGameList .import-game-item');
+  var selected = [];
+  items.forEach(function(item, i) {
+    var cb = item.querySelector('.import-check');
+    if (cb && cb.checked) {
+      selected.push({ index: i, url: item.getAttribute('data-url') });
+    }
+  });
+
+  if (selected.length === 0) { toast('No games selected', 'error'); return; }
+
+  var btn = document.getElementById('bulkImportBtn');
+  btn.disabled = true;
+  btn.textContent = 'Importing...';
+
+  var progress = document.getElementById('importProgress');
+  var bar = document.getElementById('importProgressBar');
+  progress.style.display = 'block';
+
+  var imported = 0, skipped = 0, failed = 0;
+
+  for (var s = 0; s < selected.length; s++) {
+    var sel = selected[s];
+    var statusEl = document.getElementById('importStatus' + sel.index);
+    var itemEl = document.getElementById('importItem' + sel.index);
+    statusEl.textContent = 'scanning...';
+    statusEl.style.color = 'var(--accent-cool)';
+
+    bar.style.width = ((s / selected.length) * 100) + '%';
+
+    // Scrape
+    var scanResult;
+    try {
+      scanResult = await api('/import/itch', { method: 'POST', body: JSON.stringify({ url: sel.url }) });
+    } catch (e) {
+      statusEl.textContent = 'error';
+      statusEl.style.color = 'var(--accent)';
+      itemEl.classList.add('error');
+      failed++;
+      continue;
+    }
+
+    if (scanResult.error) {
+      statusEl.textContent = esc(scanResult.error);
+      statusEl.style.color = 'var(--accent)';
+      itemEl.classList.add('error');
+      failed++;
+      continue;
+    }
+
+    // Confirm import
+    statusEl.textContent = 'importing...';
+    var game = scanResult.game;
+    var body = {
+      game: game,
+      icon_url: game._icon_url || '',
+      cover_url: game._cover_url || '',
+      screenshot_urls: game._screenshot_urls || [],
+    };
+
+    var confirmResult;
+    try {
+      confirmResult = await api('/import/itch/confirm', { method: 'POST', body: JSON.stringify(body) });
+    } catch (e) {
+      statusEl.textContent = 'error';
+      statusEl.style.color = 'var(--accent)';
+      itemEl.classList.add('error');
+      failed++;
+      continue;
+    }
+
+    if (confirmResult.error) {
+      if (confirmResult.error.indexOf('already exists') !== -1) {
+        statusEl.textContent = 'already exists';
+        statusEl.style.color = 'var(--accent-secondary)';
+        itemEl.classList.add('imported');
+        skipped++;
+      } else {
+        statusEl.textContent = esc(confirmResult.error);
+        statusEl.style.color = 'var(--accent)';
+        itemEl.classList.add('error');
+        failed++;
+      }
+      continue;
+    }
+
+    statusEl.textContent = 'imported';
+    statusEl.style.color = 'var(--accent-green)';
+    itemEl.classList.add('success');
+    imported++;
+
+    // Small delay to avoid hammering itch.io
+    if (s < selected.length - 1) {
+      await new Promise(function(r) { setTimeout(r, 500); });
+    }
+  }
+
+  bar.style.width = '100%';
+  btn.disabled = false;
+  btn.textContent = 'Import Selected';
+
+  var summary = 'Imported ' + imported;
+  if (skipped) summary += ', ' + skipped + ' skipped';
+  if (failed) summary += ', ' + failed + ' failed';
+  toast(summary, imported > 0 ? 'success' : 'error');
+
+  if (imported > 0) {
+    _showImportTip = true;
+    setTimeout(function() { showView('games'); }, 1500);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', checkSetup);
+</script>
+
+<div class="admin-footer">powered by <a href="/admin">tickle</a></div>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+output/
+.git/
+.claude/
+.gitignore
+*.md
+docker/

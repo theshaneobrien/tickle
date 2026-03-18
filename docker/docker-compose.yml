@@ -1,0 +1,10 @@
+services:
+  tickle:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"       # Public site — safe to expose
+      # - "8081:8081"     # Admin panel — uncomment for LAN access
+    volumes:
+      - ../output:/app/output
