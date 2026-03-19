@@ -35,9 +35,9 @@ On first run, visiting `http://localhost:8080` redirects you to the admin panel 
 | URL | Purpose |
 |-----|---------|
 | `http://localhost:8080/` | Your live site (visitors see this) |
-| `http://localhost:8080/admin` | Admin panel (manage games, site settings) |
-| `http://localhost:8080/preview/` | Preview with "PREVIEW MODE" banner |
-| `http://localhost:8080/api/` | JSON API (used by admin UI) |
+| `http://localhost:8081/admin` | Admin panel (manage games, site settings) |
+| `http://localhost:8081/preview/` | Preview with "PREVIEW MODE" banner |
+| `http://localhost:8081/api/` | JSON API (used by admin UI) |
 
 ### First-Run Flow
 
